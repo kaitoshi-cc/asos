@@ -1,7 +1,7 @@
 #include "ProcesserHttp.hpp"
 #include "Connection.hpp"
 #include "HtmlSample.hpp"
-#include "SHA-1.hpp"
+#include "websock_util.hpp"
 
 HTTP_processer::HTTP_processer(){
   ClearState();

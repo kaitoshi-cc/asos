@@ -1,7 +1,7 @@
 
 main_src = main.cpp 
-sub_src = Server.cpp Signal.cpp SHA-1.cpp Connection.cpp Processer.cpp ProcesserWebSocket.cpp ProcesserHttp.cpp
-header  = Server.hpp Signal.hpp SHA-1.hpp Connection.hpp Processer.hpp ProcesserWebSocket.hpp ProcesserHttp.hpp
+sub_src = Server.cpp Signal.cpp websock_util.cpp sha1.cpp Connection.cpp Processer.cpp ProcesserWebSocket.cpp ProcesserHttp.cpp
+header  = Server.hpp Signal.hpp websock_util.hpp sha1.hpp Connection.hpp Processer.hpp ProcesserWebSocket.hpp ProcesserHttp.hpp
 
 sub_src +=  asos/ASOS_Node.cpp
 header  +=  asos/ASOS_Node.hpp

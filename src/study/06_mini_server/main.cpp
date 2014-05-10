@@ -4,7 +4,6 @@
 #include <string.h>
 #include <pthread.h>
 #include <errno.h>
-#include "SHA-1.hpp"
 
 Server *server;
 
@@ -99,15 +98,6 @@ int main(int argc, char *argv[]){
   pthread_t accept_threads[THREAD_NUM];
   void *status;
   int event_thread_ids[THREAD_NUM];
-
-
-  // #################################################
-  //  const char *key = "dGhlIHNhbXBsZSBub25jZQ==";
-  //  char buff[1000];
-  //  getAcceptKey(key, buff, 1000);
-  //  printf("%s\n", buff);
-  // #################################################
-
 
   ret = SignalInit();
   if(ret == -1){ printf("Error: SignalInit() returned -1\n"); fflush(stdout); exit(-1); }
