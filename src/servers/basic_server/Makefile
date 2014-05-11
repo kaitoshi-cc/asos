@@ -12,6 +12,7 @@ sub_src += ../server_common/Processer.cpp
 sub_src += ../server_common/ProcesserWebSocket.cpp 
 sub_src += ../server_common/ProcesserHttp.cpp
 sub_src += ../asos_common/ASOS_Node.cpp
+sub_src += ../asos_common/ASOS_message.cpp
 
 header   = ../server_common/Server.hpp
 header  += ../server_common/Signal.hpp 
@@ -22,6 +23,7 @@ header  += ../server_common/Processer.hpp
 header  += ../server_common/ProcesserWebSocket.hpp 
 header  += ../server_common/ProcesserHttp.hpp
 header  += ../asos_common/ASOS_Node.hpp
+header  += ../asos_common/ASOS_message.hpp
 
 include_dir = -I../server_common/ -I../asos_common/
 
