@@ -42,6 +42,34 @@ const char *ASOS_message::message_type_string(){
   }
 }
 
+const char *ASOS_message::response_state_string(){
+  switch(response_state){
+  case 0x00:  return "success";
+  case 0x01:  return "object not found";
+  case 0x02:  return "timeout";
+  case 0x03:  return "access denied";
+  case 0x04:  return "access limitation over";
+  case 0x80:  return "previous model revision is too old";
+  case 0x81:  return "previous model revision is invalid (future revision)";
+  case 0x82:  return "model size is too big";
+  case 0x83:  return "target model revision is too old";
+  case 0x84:  return "target model revision is invalid (future revision)";
+  case 0x85:  return "message size is too big";
+  case 0x86:  return "queue is full";
+  default:    return "(unknown)";
+  }
+}
+
+const char *ASOS_message::object_state_string(){
+  switch(object_state){
+  case 0x00:  return "object not exist";
+  case 0x01:  return "object exists without connected producer";
+  case 0x02:  return "object exists with connected producer";
+  default:    return "(unknown)";
+  }
+}
+
+
 void ASOS_message::print(){
   int i;
   printf("message type            : (0x%02x) %s\n", message_type, message_type_string() );
@@ -87,34 +115,35 @@ void ASOS_message::print(){
   // ---------------------------------------------------
   // print payload 
 
-  if(message_type == 0x02 || message_type == 0x05 || message_type == 0x07 || message_type == 0x08 || message_type == 0x09
+  if(message_type == 0x02 || message_type == 0x03 || message_type == 0x05
+     || message_type == 0x07 || message_type == 0x08 || message_type == 0x09
      || message_type == 0x0a || message_type == 0x0b  || message_type == 0x0c ){
-    printf("[none]\n"); return;
+    printf("  [none]\n"); return;
   }
 
   if(message_type == 0x82 || message_type == 0x83 || message_type == 0x84 || message_type == 0x85 || message_type == 0x86
      || message_type == 0x87 || message_type == 0x88 || message_type == 0x89 
      || message_type == 0x8a || message_type == 0x8b  || message_type == 0x8c ){
-    printf("[response state]     (%02x) %s\n", response_state, "** todo: make string for response state ** "); 
+    printf("  [response state]     (%02x) %s\n", response_state, response_state_string() ); 
   }
 
   if(message_type == 0x00 || message_type == 0x82 ){
-    printf("[object state]       (%02x) %s\n", object_state, "** todo: make string for object state ** "); 
+    printf("  [object state]       (%02x) %s\n", object_state, object_state_string() ); 
   }
 
   if(message_type == 0x01 || message_type == 0x83 || message_type == 0x04 || message_type == 0x85 || message_type == 0x06
      || message_type == 0x87 ){
-    printf("[model revosion]     %lld\n", model_revision); 
+    printf("  [model revosion]     %lld\n", model_revision); 
   }
   
   if(message_type == 0x01 || message_type == 0x83 || message_type == 0x04 ){
-    printf("[model data (%d)]    ", model_data_size);
+    printf("  [model data (%d)]    ", model_data_size);
     for(i=0; i<model_data_size; i++) printf("%c", model_data[i]);
     printf("\n");
   }
 
   if(message_type == 0x85 || message_type == 0x06 ){
-    printf("[message (%d)]       ", message_size);
+    printf("  [message (%d)]       ", message_size);
     for(i=0; i<message_size; i++) printf("%c", message[i]);
     printf("\n");
   }

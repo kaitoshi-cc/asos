@@ -9,6 +9,7 @@ public:
   ~ASOS_Node();
 
   Connection *conn;
+
   int ProcessMessage(const unsigned char *buff, int buff_size, int ws_opcode);
 
 };

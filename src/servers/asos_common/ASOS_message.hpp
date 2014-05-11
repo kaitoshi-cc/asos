@@ -23,12 +23,15 @@ public:
   int payload_size;
   const unsigned char *payload;
 
-  void print();
   const char *message_type_string();
+  const char *response_state_string();
+  const char *object_state_string();
+
+  void print();
 
   // ------------------------------------------------------
 
-  // none                          //              0x02,             0x05,       0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c
+  // none                          //              0x02, 0x03        0x05,       0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c
 
   unsigned char object_state;      //  0x00,       0x82
   long long int model_revision;    //        0x01,       0x83, 0x04, 0x85, 0x06, 0x87
@@ -40,7 +43,7 @@ public:
   int message_size;                // (                              0x85, 0x06)
   const unsigned char* message;    //                                0x85, 0x06
 
-  long long int get_revision_from_net(const unsigned char *buff);
+  static long long int get_revision_from_net(const unsigned char *buff);
 
 };
 

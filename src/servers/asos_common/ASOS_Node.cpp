@@ -130,7 +130,7 @@ int ASOS_Node::ProcessMessage(const unsigned char *buff, int buff_size, int ws_o
     case 0x87:  // "create object response";
       if(msg.payload_size != 9) { printf("Worning: asos payload size is wrong [%s]\n", msg.message_type_string()); return -1;}
       msg.response_state  = msg.payload[0];
-      msg.model_revision  = msg.get_revision_from_net(msg.payload + 0);
+      msg.model_revision  = msg.get_revision_from_net(msg.payload + 1);
       break;
 
     case 0x08:  // "register object heartbeat command";
