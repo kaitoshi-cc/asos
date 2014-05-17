@@ -4,6 +4,7 @@
 #include "ProcesserCommon.hpp"
 
 #include "ASOS_Node.hpp"   // ASyncronus Object Service
+#include "ASOS_Core.hpp"   // ASyncronus Object Service
 
 class Connection;
 
@@ -34,6 +35,7 @@ public:
   unsigned char opcode;
   unsigned char original_opcode;
 
+  void Close();
 };
 
 

@@ -1,3 +1,4 @@
+#include "ASOS_Core.hpp"
 #include "Server.hpp"
 #include "Connection.hpp"
 #include "Signal.hpp"
@@ -100,6 +101,14 @@ int main(int argc, char *argv[]){
   void *status;
   int event_thread_ids[EVENT_THREAD_NUM];
   int accept_thread_ids[ACCEPT_THREAD_NUM];
+  ASOS_Core asos_core;
+
+  asos_core.server_type = 1; // Configure as basic server
+
+  ret = asos_core.CreateField("_basic.asos");
+  if(ret == -1){ printf("Error: CreateField(() returned -1\n"); fflush(stdout); exit(-1); }
+  ret = asos_core.CreateField("_ame");
+  if(ret == -1){ printf("Error: CreateField(() returned -1\n"); fflush(stdout); exit(-1); }
 
   ret = SignalInit();
   if(ret == -1){ printf("Error: SignalInit() returned -1\n"); fflush(stdout); exit(-1); }
@@ -107,7 +116,7 @@ int main(int argc, char *argv[]){
   server = new Server(80, EVENT_THREAD_NUM);
   if(server == NULL){ printf("Error: Server constructor error\n"); fflush(stdout); exit(-1); }
 
-  ret = server->Init();
+  ret = server->Init(&asos_core);
   if(ret == -1){ printf("Error: Server->Init() returned -1\n"); fflush(stdout); exit(-1); }
 
   for(i=0; i<EVENT_THREAD_NUM; i++){ event_thread_ids[i] = i; }

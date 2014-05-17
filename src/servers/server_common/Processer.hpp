@@ -18,7 +18,7 @@ public:
   Processer();
   ~Processer();
   void Process(int sock, unsigned char *buff, int index, int data_start, ProcessResult &ret);
-
+  void Close();
 
 };
 

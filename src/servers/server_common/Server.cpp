@@ -46,7 +46,7 @@ void Server::Stop(){
   }
 }
 
-int Server::Init(){
+int Server::Init(ASOS_Core *in_asos_core){
   int ret;
   int on = 1;
   int i;
@@ -72,6 +72,7 @@ int Server::Init(){
   }
   
   for(i=0; i<event_thread_num; i++){
+    epolls[i].asos_core = in_asos_core;
     epolls[i].id = i;
     epolls[i].epoll = epoll_create(3000);
     if(epolls[i].epoll == -1){
@@ -161,6 +162,8 @@ int EpollManager::AddConnection(Connection *conn){
   struct epoll_event event;
 
   if(conn == NULL) return -1;
+
+  conn->processer.websock.asos_node.asos_core = asos_core;
 
   memset(&event, 0, sizeof(event));
   event.events = EPOLLIN | EPOLLRDHUP;

@@ -4,6 +4,7 @@ WebSock_processer::WebSock_processer(){
   ClearState();
   ClearMultFlameState();
 }
+
 WebSock_processer::~WebSock_processer(){
 }
 
@@ -170,4 +171,8 @@ void WebSock_processer::Process(int sock, unsigned char *in_buff, int index, int
     }
   }
 
+}
+
+void WebSock_processer::Close(){
+  asos_node.Leave();
 }

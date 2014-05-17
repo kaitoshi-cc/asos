@@ -38,6 +38,8 @@ void Connection::Close(){
   if(ret == -1){ 
     perror("epoll_ctl(event a )"); 
   }
+  processer.Close();
+
 }
 
 int Connection::PushSendMessage(Message *msg){

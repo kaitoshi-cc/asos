@@ -27,7 +27,8 @@ public:
   const char *object_state_string();
 
   void print();
-
+  void copy(ASOS_message *src);
+  void ModifyToResponse();
   // ------------------------------------------------------
 
   // none                          //              0x02, 0x03        0x05,       0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c
@@ -43,6 +44,7 @@ public:
   const unsigned char* message;    //                                0x85, 0x06
 
   static long long int get_revision_from_net(const unsigned char *buff);
+  static void set_revision_to_net(unsigned char *buff, long long int rev);
 
 };
 

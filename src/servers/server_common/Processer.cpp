@@ -24,4 +24,6 @@ void Processer::Process(int sock, unsigned char *buff, int index, int data_start
   protocol = ret.protocol;
 }
 
-
+void Processer::Close(){
+  websock.Close();
+}

@@ -17,6 +17,7 @@
 #include <time.h>
 
 class Connection;
+class ASOS_Core;
 
 #define CHECK_SPAN_SEC 5
 
@@ -27,6 +28,8 @@ public:
 
   int id;
   int epoll;
+
+  ASOS_Core *asos_core;
 
   Connection *connection_list;
   pthread_mutex_t conn_mutex = PTHREAD_MUTEX_INITIALIZER;  
@@ -42,7 +45,7 @@ class Server{
 public:
   Server(unsigned short port, unsigned int in_event_thread_num);
   ~Server();
-  int  Init();
+  int  Init(ASOS_Core *in_asos_core);
   void Stop();
   void beginAcceptLoop(int in_accept_thread_id);
   EpollManager *getEpoll(unsigned int id);
