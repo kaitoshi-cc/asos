@@ -90,6 +90,132 @@ function test(){
 	
 }
 
+
+function ASOS_message(){}
+
+ASOS_message.prototype.message_type_string = function(){
+  switch(this.message_type){
+  case 0x00:  return "object heart beat";
+  case 0x01:  return "model publish";
+  case 0x02:  return "ping object command";
+  case 0x82:  return "ping object response";
+  case 0x03:  return "browse model command";
+  case 0x83:  return "browse model response";
+  case 0x04:  return "update model command";
+  case 0x84:  return "update model response";
+  case 0x05:  return "pop message command";
+  case 0x85:  return "pop message response";
+  case 0x06:  return "push message command";
+  case 0x86:  return "push message response";
+  case 0x07:  return "create object command";
+  case 0x87:  return "create object response";
+  case 0x08:  return "register object heartbeat command";
+  case 0x88:  return "register object heartbeat response";
+  case 0x09:  return "register model subscription command";
+  case 0x89:  return "register model subscription response";
+  case 0x0a:  return "delete object command";
+  case 0x8a:  return "delete object response";
+  case 0x0b:  return "cancel object heartbeat command";
+  case 0x8b:  return "cancel object heartbeat response";
+  case 0x0c:  return "cancel model subscription command";
+  case 0x8c:  return "cancel model subscription response";
+  default:    return "(unknown)";
+  }
+}
+
+ASOS_message.prototype.response_state_string = function(){
+  switch(this.response_state){
+  case 0x00:  return "success";
+  case 0x01:  return "field or object not found";
+  case 0x02:  return "timeout";
+  case 0x03:  return "access denied";
+  case 0x04:  return "access limitation over";
+  case 0x05:  return "same command already done";
+  case 0x80:  return "previous model revision is too old";
+  case 0x81:  return "previous model revision is invalid (future revision)";
+  case 0x82:  return "model size is too big";
+  case 0x83:  return "target model revision is too old";
+  case 0x84:  return "target model revision is invalid (future revision)";
+  case 0x85:  return "message size is too big";
+  case 0x86:  return "queue is full";
+  default:    return "(unknown)";
+  }
+}
+
+ASOS_message.prototype.object_state_string = function(){
+  switch(this.object_state){
+  case 0x00:  return "object not exist";
+  case 0x01:  return "object exists without connected producer";
+  case 0x02:  return "object exists with connected producer";
+  default:    return "(unknown)";
+  }
+}
+
+ASOS_message.prototype.Print = function(){
+	log("info", "[ASOS] Message TYPE  : " + this.message_type_string());
+	log("info", "[ASOS] Message ID    : " 
+		+ ("0"+this.message_identification0.toString(16)).slice(-2)
+		+ ("0"+this.message_identification1.toString(16)).slice(-2));
+	log("info", "[ASOS] ObjectField ID: " + this.object_field_identification);
+	log("info", "[ASOS] Object ID     : " + this.object_identification);
+}
+
+function ascii(c){
+	switch(c){
+	case 0x20: return " ";case 0x21: return "!";case 0x22: return "\"";case 0x23: return "#";
+    case 0x24: return "$";case 0x25: return "%";case 0x26: return "&";case 0x27: return "'";
+    case 0x28: return "(";case 0x29: return ")";case 0x2A: return "*";case 0x2B: return "+";
+    case 0x2C: return ",";case 0x2D: return "-";case 0x2E: return ".";case 0x2F: return "/";
+    case 0x30: return "0";case 0x31: return "1";case 0x32: return "2";case 0x33: return "3";
+    case 0x34: return "4";case 0x35: return "5";case 0x36: return "6";case 0x37: return "7";
+    case 0x38: return "8";case 0x39: return "9";case 0x3A: return ":";case 0x3B: return ";";
+    case 0x3C: return "<";case 0x3D: return "=";case 0x3E: return ">";case 0x3F: return "?";
+    case 0x40: return "@";case 0x41: return "A";case 0x42: return "B";case 0x43: return "C";
+    case 0x44: return "D";case 0x45: return "E";case 0x46: return "F";case 0x47: return "G";
+    case 0x48: return "H";case 0x49: return "I";case 0x4A: return "J";case 0x4B: return "K";
+    case 0x4C: return "L";case 0x4D: return "M";case 0x4E: return "N";case 0x4F: return "O";
+    case 0x50: return "P";case 0x51: return "Q";case 0x52: return "R";case 0x53: return "S";
+    case 0x54: return "T";case 0x55: return "U";case 0x56: return "V";case 0x57: return "W";
+    case 0x58: return "X";case 0x59: return "Y";case 0x5A: return "Z";case 0x5B: return "[";
+    case 0x5C: return "\\";case 0x5D: return "]";case 0x5E: return "^";case 0x5F: return "_";
+    case 0x60: return "`";case 0x61: return "a";case 0x62: return "b";case 0x63: return "c";
+    case 0x64: return "d";case 0x65: return "e";case 0x66: return "f";case 0x67: return "g";
+    case 0x68: return "h";case 0x69: return "i";case 0x6A: return "j";case 0x6B: return "k";
+    case 0x6C: return "l";case 0x6D: return "m";case 0x6E: return "n";case 0x6F: return "o";
+    case 0x70: return "p";case 0x71: return "q";case 0x72: return "r";case 0x73: return "s";
+    case 0x74: return "t";case 0x75: return "u";case 0x76: return "v";case 0x77: return "w";
+    case 0x78: return "x";case 0x79: return "y";case 0x7A: return "z";case 0x7B: return "{";
+    case 0x7C: return "|";case 0x7D: return "}";case 0x7E: return "~";
+	}
+}
+
+function ProcessASOS(message){
+	if(message.length <= 8) return;
+	
+	asos_msg = new ASOS_message();
+	asos_msg.message_type                       = message[0];
+	asos_msg.wait_time_for_response             = message[1];
+	asos_msg.registration_lifetime              = message[2];
+	asos_msg.lifetime_overwrite_flag            = (message[3] & 0x80 == 0x08)?1:0;
+  
+	asos_msg.message_identification0            = message[4];
+	asos_msg.message_identification1            = message[5];
+
+	asos_msg.object_field_identification_length = message[6];
+	asos_msg.object_identification_length       = message[7];
+
+	asos_msg.object_field_identification = "";
+	for(i=0;i<asos_msg.object_field_identification_length;i++){
+		asos_msg.object_field_identification += ascii(message[8+i]);
+	}
+	asos_msg.object_identification = "";
+	for(i=0;i<asos_msg.object_identification_length;i++){
+		asos_msg.object_identification += ascii(message[8+asos_msg.object_field_identification_length+i]);
+	}
+
+	asos_msg.Print();
+}
+
 function event_string(event){
 	return event.type + "," + event.target + "," + event.currentTarget + "," + event.eventPhase  + "," + event.bubbles  + "," +  event.cancelable + "," + event.timeStamp;
 }
@@ -107,8 +233,26 @@ function sock_onerror(event){
 	log("info", "socket ERROR with " + event_string(event));
 	log("info", "socket param: " + sock.bufferedAmount);
 }
+
+function sock_onmessage_as_array_buffer(event){
+	array = new Uint8Array(this.result);
+	str = "";
+	for(i = 0 ; i<array.length; i++  ){
+		str += array[i].toString(16);
+	}
+	log("info", "MESSAGE_AS_ArrayBuffer: (" + array.length + ")" + str);
+
+	ProcessASOS(array);
+
+}
+
 function sock_onmessage(event){
 	log("info", "socket receive with " + event_string(event));
+	log("info", "MESSAGE: " + event.data);
+
+	freader	= new FileReader();
+	freader.onloadend = sock_onmessage_as_array_buffer;
+	freader.readAsArrayBuffer(event.data);
 }
 
 function create_sock(){
@@ -117,6 +261,7 @@ function create_sock(){
 	sock.onerror   = sock_onerror;
 	sock.onclose   = sock_onclose;
 	sock.onmessage = sock_onmessage;
+
 }
 
 
