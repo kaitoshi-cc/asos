@@ -9,7 +9,6 @@ public:
   unsigned char message_type;
   unsigned char wait_time_for_response;
   unsigned char registration_lifetime;
-  unsigned char persistency_flag;
   unsigned char lifetime_overwrite_flag;
   
   unsigned char message_identification[2];

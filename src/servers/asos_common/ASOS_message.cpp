@@ -75,7 +75,6 @@ void ASOS_message::print(){
   printf("message type            : (0x%02x) %s\n", message_type, message_type_string() );
   printf("wait time for response  : %d [sec]\n"   , wait_time_for_response );
   printf("registration lifetime   : %d [min]\n"   , registration_lifetime );
-  printf("persistency flag        : %s\n"         , (persistency_flag==0x1)?"true":"false" );
   printf("lifetime overwrite flag : %s\n"         , (lifetime_overwrite_flag==0x1)?"true":"false" );
   printf("message identification  : %02x%02x\n"   , message_identification[0], message_identification[1] );
   printf("object field id length  : %d\n"         , object_field_identification_length );

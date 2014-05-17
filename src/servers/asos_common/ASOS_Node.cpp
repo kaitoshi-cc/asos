@@ -35,8 +35,7 @@ int ASOS_Node::ProcessMessage(const unsigned char *buff, int buff_size, int ws_o
     msg.message_type            = buff[0];
     msg.wait_time_for_response  = buff[1];
     msg.registration_lifetime   = buff[2];
-    msg.persistency_flag        = ( buff[3] & 0x80 ) >> 7;
-    msg.lifetime_overwrite_flag = ( buff[3] & 0x40 ) >> 6;
+    msg.lifetime_overwrite_flag = ( buff[3] & 0x80 ) >> 7;
 
     msg.message_identification[0] = buff[4];
     msg.message_identification[1] = buff[5];
