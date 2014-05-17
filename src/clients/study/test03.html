@@ -1,0 +1,141 @@
+<html>
+<head>
+<script type="text/javascript">
+<!--
+
+
+function log(level, msg){
+	now = new Date();
+	timestamp =  ("000" + now.getFullYear()).slice(-4)+"/"+("0"+(now.getMonth()+1)).slice(-2)+"/"+("0"+now.getDay()).slice(-2)+" ";
+	timestamp += ("0"+now.getHours()).slice(-2)+":"+("0"+now.getMinutes()).slice(-2)+":"+("0"+now.getSeconds()).slice(-2)+".";
+	timestamp += ("00"+now.getMilliseconds()).slice(-3);
+  
+	document.getElementById("log").innerHTML += timestamp + " [" + level + "] " + msg + "<br>";
+}
+
+
+var sock;
+var str;
+
+function test(){
+	var ary_u8;
+	var blob;
+
+	// [Producer] create object command
+	// 07050080 00060404 5f616d65 63617264
+	ary_u8 = new Uint8Array([0x07,0x05,0x00,0x80 ,0x00,0x06,0x04,0x04 ,0x5f,0x61,0x6d,0x65 ,0x63,0x61,0x72,0x64]);
+	blob   = new Blob([ary_u8] , {type:"application/octet-stream"}); 
+	sock.send(blob);
+
+
+	// [Comsumer] register object heartbeat command
+	// 08003c00 00070404 5f616d65 63617264
+	ary_u8 = new Uint8Array([0x08,0x00,0x3c,0x00 ,0x00,0x07,0x04,0x04 ,0x5f,0x61,0x6d,0x65 ,0x63,0x61,0x72,0x64]);
+	blob   = new Blob([ary_u8] , {type:"application/octet-stream"}); 
+	sock.send(blob);
+
+	// [Comsumer] ping object command
+	// 02000000 00010404 5f616d65 63617264
+	ary_u8 = new Uint8Array([0x02,0x00,0x00,0x00 ,0x00,0x01,0x04,0x04 ,0x5f,0x61,0x6d,0x65 ,0x63,0x61,0x72,0x64]);
+	blob   = new Blob([ary_u8] , {type:"application/octet-stream"}); 
+	sock.send(blob);
+
+	// [Comsumer] register model subscription command
+	// 09003c00 00080404 5f616d65 63617264
+	ary_u8 = new Uint8Array([0x09,0x00,0x3c,0x00 ,0x00,0x08,0x04,0x04 ,0x5f,0x61,0x6d,0x65 ,0x63,0x61,0x72,0x64]);
+	blob   = new Blob([ary_u8] , {type:"application/octet-stream"}); 
+	sock.send(blob);
+	
+	// [Comsumer] push message command
+	// 06050000 00050404 5f616d65 63617264 00000000 00000001 5b22636f 6d6d616e 64223a22 6e657874 225d
+	ary_u8 = new Uint8Array([0x06,0x05,0x00,0x00 ,0x00,0x05,0x04,0x04 ,0x5f,0x61,0x6d,0x65 ,0x63,0x61,0x72,0x64 ,0x00,0x00,0x00,0x00 ,0x00,0x00,0x00,0x01 ,0x5b,0x22,0x63,0x6f ,0x6d,0x6d,0x61,0x6e ,0x64,0x22,0x3a,0x22 ,0x6e,0x65,0x78,0x74 ,0x22,0x5d]);
+	blob   = new Blob([ary_u8] , {type:"application/octet-stream"}); 
+	sock.send(blob);
+
+	// [Producer] pop message command
+	// 05050000 00040404 5f616d65 63617264 
+	ary_u8 = new Uint8Array([0x05,0x05,0x00,0x00 ,0x00,0x04,0x04,0x04 ,0x5f,0x61,0x6d,0x65 ,0x63,0x61,0x72,0x64]);
+	blob   = new Blob([ary_u8] , {type:"application/octet-stream"}); 
+	sock.send(blob);
+
+	// [Producer] update model command
+	// 04050000 00030404 5f616d65 63617264 00000000 00000001 5b227375 6974223a 2268222c 226e756d 223a2235 225d
+	ary_u8 = new Uint8Array([0x04,0x05,0x00,0x00 ,0x00,0x03,0x04,0x04 ,0x5f,0x61,0x6d,0x65 ,0x63,0x61,0x72,0x64 ,0x00,0x00,0x00,0x00 ,0x00,0x00,0x00,0x01 ,0x5b,0x22,0x73,0x75 ,0x69,0x74,0x22,0x3a ,0x22,0x68,0x22,0x2c ,0x22,0x6e,0x75,0x6d ,0x22,0x3a,0x22,0x35 ,0x22,0x5d]);
+	blob   = new Blob([ary_u8] , {type:"application/octet-stream"}); 
+	sock.send(blob);
+	
+	// [Comsumer] browse model command
+	// 03000000 00020404 5f616d65 63617264
+	ary_u8 = new Uint8Array([0x03,0x00,0x00,0x00 ,0x00,0x02,0x04,0x04 ,0x5f,0x61,0x6d,0x65 ,0x63,0x61,0x72,0x64]);
+	blob   = new Blob([ary_u8] , {type:"application/octet-stream"}); 
+	sock.send(blob);
+	
+	// [Comsumer] cancel object heartbeat command
+	// 0b000000 000a0404 5f616d65 63617264
+	ary_u8 = new Uint8Array([0x0b,0x00,0x00,0x00 ,0x00,0x0a,0x04,0x04 ,0x5f,0x61,0x6d,0x65 ,0x63,0x61,0x72,0x64]);
+	blob   = new Blob([ary_u8] , {type:"application/octet-stream"}); 
+	sock.send(blob);
+	
+	// [Comsumer] cancel model subscription command
+	// 0c000000 000b0404 5f616d65 63617264
+	ary_u8 = new Uint8Array([0x0c,0x00,0x00,0x00 ,0x00,0x0b,0x04,0x04 ,0x5f,0x61,0x6d,0x65 ,0x63,0x61,0x72,0x64]);
+	blob   = new Blob([ary_u8] , {type:"application/octet-stream"}); 
+	sock.send(blob);
+	
+	// [Producer] delete object command
+	// 0a050000 00090404 5f616d65 63617264
+	ary_u8 = new Uint8Array([0x0a,0x05,0x00,0x00 ,0x00,0x09,0x04,0x04 ,0x5f,0x61,0x6d,0x65 ,0x63,0x61,0x72,0x64]);
+	blob   = new Blob([ary_u8] , {type:"application/octet-stream"}); 
+	sock.send(blob);
+	
+}
+
+function event_string(event){
+	return event.type + "," + event.target + "," + event.currentTarget + "," + event.eventPhase  + "," + event.bubbles  + "," +  event.cancelable + "," + event.timeStamp;
+}
+
+function sock_onopen(event){
+	log("info", "socket OPEN with " + event_string(event));
+	log("info", "socket param: " + sock.bufferedAmount);
+	setTimeout('test()',1000);
+}
+function sock_onclose(event){
+	log("info", "socket CLOSE with " + event_string(event));
+	log("info", "socket param: " + sock.bufferedAmount);
+}
+function sock_onerror(event){
+	log("info", "socket ERROR with " + event_string(event));
+	log("info", "socket param: " + sock.bufferedAmount);
+}
+function sock_onmessage(event){
+	log("info", "socket receive with " + event_string(event));
+}
+
+function create_sock(){
+	sock = new WebSocket("ws://172.16.0.3/chat", ["proto1", "proto2"]);
+	sock.onopen    = sock_onopen;
+	sock.onerror   = sock_onerror;
+	sock.onclose   = sock_onclose;
+	sock.onmessage = sock_onmessage;
+}
+
+
+function main(){
+	log("info", "Start main funtion");
+	
+	create_sock();
+	
+	log("info", "End main funtion");
+}
+
+// -->
+</script>
+
+</head>
+<body onload="main()">
+test
+
+<div id="log"></div>
+
+</body>
+</html>
