@@ -179,28 +179,6 @@ void ASOS_message::set_revision_to_net(unsigned char *buff, long long int rev){
 
 void ASOS_message::copy(ASOS_message *src){
   memcpy(this, src, sizeof(ASOS_message));
-
-  /*
-  message_type                        = src->message_type;
-  wait_time_for_response              = src->wait_time_for_response;
-  registration_lifetime               = src->registration_lifetime;
-  lifetime_overwrite_flag             = src->lifetime_overwrite_flag;
-  message_identification[0]           = src->message_identification[0];
-  message_identification[1]           = src->message_identification[1];
-  object_field_identification_length  = src->object_field_identification_length;
-  object_identification_length        = src->object_identification_length;
-  object_field_identification         = src->object_field_identification;
-  object_identification               = src->object_identification;
-  payload_size                        = src->payload_size;
-  payload                             = src->payload;
-  object_state                        = src->object_state;
-  model_revision                      = src->model_revision;
-  response_state                      = src->response_state;
-  model_data_size                     = src->model_data_size;
-  model_data                          = src->model_data;
-  message_size                        = src->message_size;
-  message                             = src->message;
-  */
 }
 
 void ASOS_message::ModifyToResponse(){

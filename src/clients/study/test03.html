@@ -3,7 +3,6 @@
 <script type="text/javascript">
 <!--
 
-
 function log(level, msg){
 	now = new Date();
 	timestamp =  ("000" + now.getFullYear()).slice(-4)+"/"+("0"+(now.getMonth()+1)).slice(-2)+"/"+("0"+now.getDay()).slice(-2)+" ";
@@ -12,7 +11,6 @@ function log(level, msg){
   
 	document.getElementById("log").innerHTML += "<tt>" + timestamp + " [" + level + "] " + msg + "</tt><br>";
 }
-
 
 var sock;
 var str;
@@ -158,6 +156,62 @@ ASOS_message.prototype.Print = function(){
 		+ ("0"+this.message_identification1.toString(16)).slice(-2));
 	log("info", "[ASOS] ObjectField ID : " + this.object_field_identification);
 	log("info", "[ASOS] Object ID..... : " + this.object_identification);
+
+	switch(this.message_type){
+	case 0x00: // "object heart beat";
+		log("info", "[ASOS] Object State.. : " + this.object_state_string());
+		break;
+  	case 0x01: // "model publish";
+		log("info", "[ASOS] Model Revision : " + this.model_revision);
+		log("info", "[ASOS] Model Data.... : " + this.model_data );
+		break;
+	case 0x82: // "ping object response";
+		log("info", "[ASOS] Object State.. : " + this.response_state_string());
+		log("info", "[ASOS] Object State.. : " + this.object_state_string());
+		break;
+    case 0x83: // "browse model response";
+		log("info", "[ASOS] Object State.. : " + this.response_state_string());
+		log("info", "[ASOS] Model Revision : " + this.model_revision);
+		log("info", "[ASOS] Model Data.... : " + this.model_data );
+		break;
+    case 0x84: // "update model response";
+		log("info", "[ASOS] Object State.. : " + this.response_state_string());
+		break;
+    case 0x85: // "pop message response";
+		log("info", "[ASOS] Object State.. : " + this.response_state_string());
+		log("info", "[ASOS] Model Revision : " + this.model_revision);
+		log("info", "[ASOS] Message....... : " + this.message );
+		break;
+    case 0x86: // "push message response";
+		log("info", "[ASOS] Object State.. : " + this.response_state_string());
+		break;
+    case 0x87: // "create object response";
+		log("info", "[ASOS] Object State.. : " + this.response_state_string());
+		log("info", "[ASOS] Model Revision : " + this.model_revision);
+		break;
+    case 0x88: // "register object heartbeat response";
+		log("info", "[ASOS] Object State.. : " + this.response_state_string());
+		break;
+    case 0x89: // "register model subscription response";
+		log("info", "[ASOS] Object State.. : " + this.response_state_string());
+		break;
+    case 0x8a: // "delete object response";
+		log("info", "[ASOS] Object State.. : " + this.response_state_string());
+		break;
+    case 0x8b: // "cancel object heartbeat response";
+		log("info", "[ASOS] Object State.. : " + this.response_state_string());
+		break;
+    case 0x8c: // "cancel model subscription response";
+		log("info", "[ASOS] Object State.. : " + this.response_state_string());
+		break;
+    default:   // "(unknown)";
+	}
+
+}
+
+ASOS_message.prototype.get_model_revision = function(c0,c1,c2,c3,c4,c5,c6,c7){
+	return (c0 * 0x0100000000000000) + (c1 * 0x0001000000000000)+ (c2 * 0x0000010000000000)+ (c3 * 0x0000000100000000)
+		 + (c4 * 0x0000000001000000) + (c5 * 0x0000000000010000)+ (c6 * 0x0000000000000100)+ (c7 * 0x0000000000000001);
 }
 
 ASOS_message.prototype.Parse = function(message){
@@ -181,6 +235,76 @@ ASOS_message.prototype.Parse = function(message){
 	for(i=0;i<this.object_identification_length;i++){
 		this.object_identification += ascii(message[8+this.object_field_identification_length+i]);
 	}
+	
+	_index = 8 + this.object_field_identification_length + this.object_identification_length;
+	
+	switch(this.message_type){
+	case 0x00: // "object heart beat";
+		this.object_state = message[_index];  _index++;
+		break;
+  	case 0x01: // "model publish";
+		this.model_revision = this.get_model_revision(message[_index+0], message[_index+1], message[_index+2], message[_index+3], 
+								   	 				  message[_index+4], message[_index+5], message[_index+6], message[_index+7] );
+		_index+=8;
+		this.model_data = "";
+		while(_index < message.length){
+			this.model_date += ascii(message[_index]); _index++;
+		}
+		break;
+	case 0x82: // "ping object response";
+		this.response_state = message[_index];  _index++;
+		this.object_state = message[_index];  _index++;
+		break;
+    case 0x83: // "browse model response";
+		this.response_state = message[_index];  _index++;
+		this.model_revision = this.get_model_revision(message[_index+0], message[_index+1], message[_index+2], message[_index+3], 
+								   	 				  message[_index+4], message[_index+5], message[_index+6], message[_index+7] );
+		_index+=8;
+		this.model_data = "";
+		while(_index < message.length){
+			this.model_date += ascii(message[_index]); _index++;
+		}
+		break;
+    case 0x84: // "update model response";
+		this.response_state = message[_index];  _index++;
+		break;
+    case 0x85: // "pop message response";
+		this.response_state = message[_index];  _index++;
+		this.model_revision = this.get_model_revision(message[_index+0], message[_index+1], message[_index+2], message[_index+3], 
+								   	 				  message[_index+4], message[_index+5], message[_index+6], message[_index+7] );
+		_index+=8;
+		this.message = "";
+		while(_index < message.length){
+			this.message += ascii(message[_index]); _index++;
+		}
+		break;
+    case 0x86: // "push message response";
+		this.response_state = message[_index];  _index++;
+		break;
+    case 0x87: // "create object response";
+		this.response_state = message[_index];  _index++;
+		this.model_revision = this.get_model_revision(message[_index+0], message[_index+1], message[_index+2], message[_index+3], 
+								   	 				  message[_index+4], message[_index+5], message[_index+6], message[_index+7] );
+		_index+=8;
+		break;
+    case 0x88: // "register object heartbeat response";
+		this.response_state = message[_index];  _index++;
+		break;
+    case 0x89: // "register model subscription response";
+		this.response_state = message[_index];  _index++;
+		break;
+    case 0x8a: // "delete object response";
+		this.response_state = message[_index];  _index++;
+		break;
+    case 0x8b: // "cancel object heartbeat response";
+		this.response_state = message[_index];  _index++;
+		break;
+    case 0x8c: // "cancel model subscription response";
+		this.response_state = message[_index];  _index++;
+		break;
+    default:   // "(unknown)";
+	}
+	
 }
 
 function ascii(c){
@@ -241,7 +365,7 @@ function sock_onmessage_as_array_buffer(event){
 	array = new Uint8Array(this.result);
 	str = "";
 	for(i = 0 ; i<array.length; i++  ){
-		str += array[i].toString(16);
+		str += ("0"+array[i].toString(16)).slice(-2);
 	}
 	log("info", "MESSAGE_AS_ArrayBuffer: (" + array.length + ")" + str);
 

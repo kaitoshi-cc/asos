@@ -47,7 +47,7 @@ int ASOS_Core::onCreateObject(ASOS_message *in_msg, ASOS_Node *in_node){
 
   index = GetFieldIndex((char *)in_msg->object_field_identification, in_msg->object_field_identification_length);
   printf("ASOS_Core::onCreateObject %d\n", index);
-  if(index >= 0 && MAX_OBJECT_FIELD_SIZE < index){
+  if(index >= 0 && MAX_OBJECT_FIELD_SIZE > index){
   }else{
     res_msg.response_state = 0x01;
   }
@@ -66,7 +66,7 @@ int ASOS_Core::onDeleteObject(ASOS_message *in_msg, ASOS_Node *in_node){
 
   index = GetFieldIndex((char *)in_msg->object_field_identification, in_msg->object_field_identification_length);
   printf("ASOS_Core::onDeleteObject %d\n", index);
-  if(index >= 0 && MAX_OBJECT_FIELD_SIZE < index){
+  if(index >= 0 && MAX_OBJECT_FIELD_SIZE > index){
   }else{
     res_msg.response_state = 0x01;
   }
@@ -85,7 +85,7 @@ int ASOS_Core::onPingObject(ASOS_message *in_msg, ASOS_Node *in_node){
 
   index = GetFieldIndex((char *)in_msg->object_field_identification, in_msg->object_field_identification_length);
   printf("ASOS_Core::onPingObject %d\n", index);
-  if(index >= 0 && MAX_OBJECT_FIELD_SIZE < index){
+  if(index >= 0 && MAX_OBJECT_FIELD_SIZE > index){
   }else{
     res_msg.response_state = 0x01;
   }
@@ -104,8 +104,11 @@ int ASOS_Core::onRegisterObjectHeartbeat(ASOS_message *in_msg, ASOS_Node *in_nod
 
   index = GetFieldIndex((char *)in_msg->object_field_identification, in_msg->object_field_identification_length);
   printf("ASOS_Core::onRegisterObjectHeartbeat %d\n", index);
-  if(index >= 0 && MAX_OBJECT_FIELD_SIZE < index){
+  if(index >= 0 && MAX_OBJECT_FIELD_SIZE > index){
+    printf("ASOS_Core::onRegisterObjectHeartbeat => field found\n");
+    res_msg.response_state = 0x00;
   }else{
+    printf("ASOS_Core::onRegisterObjectHeartbeat => field not found\n");
     res_msg.response_state = 0x01;
   }
 
@@ -123,8 +126,11 @@ int ASOS_Core::onCancelObjectHeartbeat(ASOS_message *in_msg, ASOS_Node *in_node)
 
   index = GetFieldIndex((char *)in_msg->object_field_identification, in_msg->object_field_identification_length);
   printf("ASOS_Core::onCancelObjectHeartbeat %d\n", index);
-  if(index >= 0 && MAX_OBJECT_FIELD_SIZE < index){
+  if(index >= 0 && MAX_OBJECT_FIELD_SIZE > index){
+    printf("ASOS_Core::onCancelObjectHeartbeat => field found\n");
+    res_msg.response_state = 0x00;
   }else{
+    printf("ASOS_Core::onCancelObjectHeartbeat => field not found\n");
     res_msg.response_state = 0x01;
   }
 
@@ -142,7 +148,7 @@ int ASOS_Core::onBrowseModel(ASOS_message *in_msg, ASOS_Node *in_node){
 
   index = GetFieldIndex((char *)in_msg->object_field_identification, in_msg->object_field_identification_length);
   printf("ASOS_Core::onBrowseModel %d\n", index);
-  if(index >= 0 && MAX_OBJECT_FIELD_SIZE < index){
+  if(index >= 0 && MAX_OBJECT_FIELD_SIZE > index){
   }else{
     res_msg.response_state = 0x01;
   }
@@ -161,7 +167,7 @@ int ASOS_Core::onUpdateModel(ASOS_message *in_msg, ASOS_Node *in_node){
 
   index = GetFieldIndex((char *)in_msg->object_field_identification, in_msg->object_field_identification_length);
   printf("ASOS_Core::onUpdateModel %d\n", index);
-  if(index >= 0 && MAX_OBJECT_FIELD_SIZE < index){
+  if(index >= 0 && MAX_OBJECT_FIELD_SIZE > index){
   }else{
     res_msg.response_state = 0x01;
   }
@@ -180,7 +186,7 @@ int ASOS_Core::onRegisterModelSubscription(ASOS_message *in_msg, ASOS_Node *in_n
 
   index = GetFieldIndex((char *)in_msg->object_field_identification, in_msg->object_field_identification_length);
   printf("ASOS_Core::onRegisterModelSubscription %d\n", index);
-  if(index >= 0 && MAX_OBJECT_FIELD_SIZE < index){
+  if(index >= 0 && MAX_OBJECT_FIELD_SIZE > index){
   }else{
     res_msg.response_state = 0x01;
   }
@@ -199,7 +205,7 @@ int ASOS_Core::onCancelModelSubscription(ASOS_message *in_msg, ASOS_Node *in_nod
 
   index = GetFieldIndex((char *)in_msg->object_field_identification, in_msg->object_field_identification_length);
   printf("ASOS_Core::onCancelModelSubscription %d\n", index);
-  if(index >= 0 && MAX_OBJECT_FIELD_SIZE < index){
+  if(index >= 0 && MAX_OBJECT_FIELD_SIZE > index){
   }else{
     res_msg.response_state = 0x01;
   }
@@ -218,7 +224,7 @@ int ASOS_Core::onPushMessage(ASOS_message *in_msg, ASOS_Node *in_node){
 
   index = GetFieldIndex((char *)in_msg->object_field_identification, in_msg->object_field_identification_length);
   printf("ASOS_Core::onPushMessage %d\n", index);
-  if(index >= 0 && MAX_OBJECT_FIELD_SIZE < index){
+  if(index >= 0 && MAX_OBJECT_FIELD_SIZE > index){
   }else{
     res_msg.response_state = 0x01;
   }
@@ -237,7 +243,7 @@ int ASOS_Core::onPopMessage(ASOS_message *in_msg, ASOS_Node *in_node){
 
   index = GetFieldIndex((char *)in_msg->object_field_identification, in_msg->object_field_identification_length);
   printf("ASOS_Core::onPopMessage %d\n", index);
-  if(index >= 0 && MAX_OBJECT_FIELD_SIZE < index){
+  if(index >= 0 && MAX_OBJECT_FIELD_SIZE > index){
   }else{
     res_msg.response_state = 0x01;
   }
