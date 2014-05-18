@@ -10,7 +10,7 @@ function log(level, msg){
 	timestamp += ("0"+now.getHours()).slice(-2)+":"+("0"+now.getMinutes()).slice(-2)+":"+("0"+now.getSeconds()).slice(-2)+".";
 	timestamp += ("00"+now.getMilliseconds()).slice(-3);
   
-	document.getElementById("log").innerHTML += timestamp + " [" + level + "] " + msg + "<br>";
+	document.getElementById("log").innerHTML += "<tt>" + timestamp + " [" + level + "] " + msg + "</tt><br>";
 }
 
 
@@ -152,12 +152,35 @@ ASOS_message.prototype.object_state_string = function(){
 }
 
 ASOS_message.prototype.Print = function(){
-	log("info", "[ASOS] Message TYPE  : " + this.message_type_string());
-	log("info", "[ASOS] Message ID    : " 
+	log("info", "[ASOS] Message TYPE.. : " + this.message_type_string());
+	log("info", "[ASOS] Message ID.... : " 
 		+ ("0"+this.message_identification0.toString(16)).slice(-2)
 		+ ("0"+this.message_identification1.toString(16)).slice(-2));
-	log("info", "[ASOS] ObjectField ID: " + this.object_field_identification);
-	log("info", "[ASOS] Object ID     : " + this.object_identification);
+	log("info", "[ASOS] ObjectField ID : " + this.object_field_identification);
+	log("info", "[ASOS] Object ID..... : " + this.object_identification);
+}
+
+ASOS_message.prototype.Parse = function(message){
+	
+	this.message_type                       = message[0];
+	this.wait_time_for_response             = message[1];
+	this.registration_lifetime              = message[2];
+	this.lifetime_overwrite_flag            = (message[3] & 0x80 == 0x08)?1:0;
+  	
+	this.message_identification0            = message[4];
+	this.message_identification1            = message[5];
+	
+	this.object_field_identification_length = message[6];
+	this.object_identification_length       = message[7];
+	
+	this.object_field_identification = "";
+	for(i=0;i<this.object_field_identification_length;i++){
+		this.object_field_identification += ascii(message[8+i]);
+	}
+	this.object_identification = "";
+	for(i=0;i<this.object_identification_length;i++){
+		this.object_identification += ascii(message[8+this.object_field_identification_length+i]);
+	}
 }
 
 function ascii(c){
@@ -191,28 +214,8 @@ function ascii(c){
 
 function ProcessASOS(message){
 	if(message.length <= 8) return;
-	
 	asos_msg = new ASOS_message();
-	asos_msg.message_type                       = message[0];
-	asos_msg.wait_time_for_response             = message[1];
-	asos_msg.registration_lifetime              = message[2];
-	asos_msg.lifetime_overwrite_flag            = (message[3] & 0x80 == 0x08)?1:0;
-  
-	asos_msg.message_identification0            = message[4];
-	asos_msg.message_identification1            = message[5];
-
-	asos_msg.object_field_identification_length = message[6];
-	asos_msg.object_identification_length       = message[7];
-
-	asos_msg.object_field_identification = "";
-	for(i=0;i<asos_msg.object_field_identification_length;i++){
-		asos_msg.object_field_identification += ascii(message[8+i]);
-	}
-	asos_msg.object_identification = "";
-	for(i=0;i<asos_msg.object_identification_length;i++){
-		asos_msg.object_identification += ascii(message[8+asos_msg.object_field_identification_length+i]);
-	}
-
+	asos_msg.Parse(message);
 	asos_msg.Print();
 }
 
