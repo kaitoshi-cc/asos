@@ -255,6 +255,45 @@ int ASOS_Core::onPopMessage(ASOS_message *in_msg, ASOS_Node *in_node){
   return ret;
 }
 
+int ASOS_Core::onRegisterMessageCapture(ASOS_message *in_msg, ASOS_Node *in_node){
+  int ret=0;
+  int index;
+  ASOS_message res_msg;  res_msg.copy(in_msg);    res_msg.ModifyToResponse();
+
+  index = GetFieldIndex((char *)in_msg->object_field_identification, in_msg->object_field_identification_length);
+  printf("ASOS_Core::onRegisterMessageCapture %d\n", index);
+  if(index >= 0 && MAX_OBJECT_FIELD_SIZE > index){
+  }else{
+    res_msg.response_state = 0x01;
+  }
+
+  if(in_node != NULL){
+    in_node->SendMessage(&res_msg);
+  }
+
+  return ret;
+}
+
+int ASOS_Core::onCancelMessageCapture(ASOS_message *in_msg, ASOS_Node *in_node){
+  int ret=0;
+  int index;
+  ASOS_message res_msg;  res_msg.copy(in_msg);    res_msg.ModifyToResponse();
+
+  index = GetFieldIndex((char *)in_msg->object_field_identification, in_msg->object_field_identification_length);
+  printf("ASOS_Core::onCancelMessageCapture %d\n", index);
+  if(index >= 0 && MAX_OBJECT_FIELD_SIZE > index){
+  }else{
+    res_msg.response_state = 0x01;
+  }
+
+  if(in_node != NULL){
+    in_node->SendMessage(&res_msg);
+  }
+
+  return ret;
+}
+
+
 void ASOS_Core::CleanUpByNodeLeaving(ASOS_Node *in_node){
   int i;
   for(i=0; i<field_num; i++){

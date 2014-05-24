@@ -206,6 +206,37 @@ int ASOS_Node::ProcessMessage(const unsigned char *buff, int buff_size, int ws_o
       ret = ProcessCancelModelSubscriptionResponse(&msg);
       break;
 
+
+    case 0x0d:  // "captured message";
+      if(msg.payload_size < 8) { printf("Worning: asos payload size is wrong [%s]\n", msg.message_type_string()); return -1;}
+      msg.model_revision  = msg.get_revision_from_net(msg.payload + 0);
+      msg.message_size    = msg.payload_size - 8;
+      msg.message         = msg.payload + 8;
+      ret = ProcessCapturedMessage(&msg);
+      break;
+
+    case 0x0e:  // "register message capture command";
+      if(msg.payload_size != 0) { printf("Worning: asos payload size is wrong [%s]\n", msg.message_type_string()); return -1;}
+      ret = ProcessRegisterMessageCaptureCommand(&msg);
+      break;
+
+    case 0x8e:  // "register message capture response";
+      if(msg.payload_size != 1) { printf("Worning: asos payload size is wrong [%s]\n", msg.message_type_string()); return -1;}
+      msg.model_revision  = msg.get_revision_from_net(msg.payload + 0);
+      ret = ProcessRegisterMessageCaptureResponse(&msg);
+      break;
+
+    case 0x0f:  // "cancel message capture command";
+      if(msg.payload_size != 0) { printf("Worning: asos payload size is wrong [%s]\n", msg.message_type_string()); return -1;}
+      ret = ProcessCancelMessageCaptureCommand(&msg);
+      break;
+
+    case 0x8f:  // "cancel message capture response";
+      if(msg.payload_size != 1) { printf("Worning: asos payload size is wrong [%s]\n", msg.message_type_string()); return -1;}
+      msg.model_revision  = msg.get_revision_from_net(msg.payload + 0);
+      ret = ProcessCancelMessageCaptureResponse(&msg);
+      break;
+
     default:    printf("Error: asos message type is unknown\n"); return -1;
     }
     //    msg.print();
@@ -513,6 +544,69 @@ int ASOS_Node::ProcessPushMessageResponse(ASOS_message *in_msg){
   return ret;
 }
 
+int ASOS_Node::ProcessCapturedMessage(ASOS_message *in_msg){
+  int ret = 0;
+  if(in_msg->message_type == 0x0d){
+    switch(asos_core->server_type){
+    case 1: // basic server
+      printf("Error: basic server should not receive Response/Notice message of ASOS.\n"); ret = -1; break;
+    default:  break;
+    }
+  }else{ printf("ASOS_Node Error: message type incorrect\n"); ret = -1; }
+  return ret;
+}
+
+int ASOS_Node::ProcessRegisterMessageCaptureCommand(ASOS_message *in_msg){
+  int ret = 0;
+  if(in_msg->message_type == 0x0e){
+    switch(asos_core->server_type){
+    case 1: // basic server
+      ret = asos_core->onRegisterMessageCapture(in_msg, this);
+      break;
+    default:  break;
+    }
+  }else{ printf("ASOS_Node Error: message type incorrect\n"); ret = -1; }
+  return ret;
+}
+
+int ASOS_Node::ProcessRegisterMessageCaptureResponse(ASOS_message *in_msg){
+  int ret = 0;
+  if(in_msg->message_type == 0x8e){
+    switch(asos_core->server_type){
+    case 1: // basic server
+      printf("Error: basic server should not receive Response/Notice message of ASOS.\n"); ret = -1; break;
+    default:  break;
+    }
+  }else{ printf("ASOS_Node Error: message type incorrect\n"); ret = -1; }
+  return ret;
+}
+
+int ASOS_Node::ProcessCancelMessageCaptureCommand(ASOS_message *in_msg){
+  int ret = 0;
+  if(in_msg->message_type == 0x0f){
+    switch(asos_core->server_type){
+    case 1: // basic server
+      ret = asos_core->onCancelMessageCapture(in_msg, this);
+      break;
+    default:  break;
+    }
+  }else{ printf("ASOS_Node Error: message type incorrect\n"); ret = -1; }
+  return ret;
+}
+
+int ASOS_Node::ProcessCancelMessageCaptureResponse(ASOS_message *in_msg){
+  int ret = 0;
+  if(in_msg->message_type == 0x8f){
+    switch(asos_core->server_type){
+    case 1: // basic server
+      printf("Error: basic server should not receive Response/Notice message of ASOS.\n"); ret = -1; break;
+    default:  break;
+    }
+  }else{ printf("ASOS_Node Error: message type incorrect\n"); ret = -1; }
+  return ret;
+}
+
+
 void ASOS_Node::SendMessage(ASOS_message *in_msg){
   Message *message;
   long long int websock_payload_size;
@@ -577,6 +671,16 @@ void ASOS_Node::SendMessage(ASOS_message *in_msg){
   case 0x0c:  // "cancel model subscription command";
     in_msg->payload_size = 0; break;
   case 0x8c:  // "cancel model subscription response";
+    in_msg->payload_size = 1; break;
+  case 0x0d:  // "captured message";
+    in_msg->payload_size = 8 + in_msg->message_size; break;
+  case 0x0e:  // "register message capture command";
+    in_msg->payload_size = 0; break;
+  case 0x8e:  // "register message capture response";
+    in_msg->payload_size = 1; break;
+  case 0x0f:  // "cancel message capture command";
+    in_msg->payload_size = 0; break;
+  case 0x8f:  // "cancel message capture response";
     in_msg->payload_size = 1; break;
   default:    printf("Error: asos message type is unknown\n");
   }
@@ -715,6 +819,21 @@ void ASOS_Node::SendMessage(ASOS_message *in_msg){
   case 0x0c:  // "cancel model subscription command";
     break;
   case 0x8c:  // "cancel model subscription response";
+    message->data[_index] = in_msg->response_state;  _index++;
+    break;
+  case 0x0d:  // "captured message";
+    in_msg->set_revision_to_net(message->data+_index, in_msg->model_revision);  _index+=8;
+    memcpy(message->data+_index, in_msg->message, in_msg->message_size);
+    _index+= in_msg->message_size;
+    break;
+  case 0x0e:  // "register message capture command";
+    break;
+  case 0x8e:  // "register message capture response";
+    message->data[_index] = in_msg->response_state;  _index++;
+    break;
+  case 0x0f:  // "cancel message capture command";
+    break;
+  case 0x8f:  // "cancel message capture response";
     message->data[_index] = in_msg->response_state;  _index++;
     break;
   default:    printf("Error: asos message type is unknown\n");

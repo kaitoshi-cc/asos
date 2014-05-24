@@ -49,6 +49,13 @@ public:
   int ProcessPushMessageCommand(ASOS_message *in_msg);
   int ProcessPushMessageResponse(ASOS_message *in_msg);
 
+  int ProcessCapturedMessage(ASOS_message *in_msg);
+  int ProcessRegisterMessageCaptureCommand(ASOS_message *in_msg);
+  int ProcessRegisterMessageCaptureResponse(ASOS_message *in_msg);
+  int ProcessCancelMessageCaptureCommand(ASOS_message *in_msg);
+  int ProcessCancelMessageCaptureResponse(ASOS_message *in_msg);
+
+
 };
 
 #endif

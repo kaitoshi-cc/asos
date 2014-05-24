@@ -339,6 +339,23 @@ ASOS_message.prototype.Parse = function(message){
     case 0x8c: // "cancel model subscription response";
 		this.response_state = message[_index];  _index++;
 		break;
+
+    case 0x0d: // "captured message";
+		this.model_revision = this.get_model_revision(message[_index+0], message[_index+1], message[_index+2], message[_index+3], 
+								   	 				  message[_index+4], message[_index+5], message[_index+6], message[_index+7] );
+		_index+=8;
+		this.message = "";
+		while(_index < message.length){
+			this.message += ascii(message[_index]); _index++;
+		}
+		break;
+
+    case 0x8e: // "register message capture response";
+		this.response_state = message[_index];  _index++;
+		break;
+    case 0x8f: // "cancel message capture response";
+		this.response_state = message[_index];  _index++;
+		break;
     default:   // "(unknown)";
 	}
 	

@@ -34,6 +34,9 @@ public:
   int onPushMessage(ASOS_message *in_msg, ASOS_Node *in_node);
   int onPopMessage(ASOS_message *in_msg, ASOS_Node *in_node);
 
+  int onRegisterMessageCapture(ASOS_message *in_msg, ASOS_Node *in_node);
+  int onCancelMessageCapture(ASOS_message *in_msg, ASOS_Node *in_node);
+
   void CleanUpByNodeLeaving(ASOS_Node *in_node);
 
 };

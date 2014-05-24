@@ -39,6 +39,13 @@ const char *ASOS_message::message_type_string(){
   case 0x8b:  return "cancel object heartbeat response";
   case 0x0c:  return "cancel model subscription command";
   case 0x8c:  return "cancel model subscription response";
+
+  case 0x0d:  return "captured message";
+  case 0x0e:  return "register message capture command";
+  case 0x8e:  return "register message capture response";
+  case 0x0f:  return "cancel message capture command";
+  case 0x8f:  return "cancel message capture response";
+
   default:    return "(unknown)";
   }
 }
@@ -118,13 +125,15 @@ void ASOS_message::print(){
 
   if(message_type == 0x02 || message_type == 0x03 || message_type == 0x05
      || message_type == 0x07 || message_type == 0x08 || message_type == 0x09
-     || message_type == 0x0a || message_type == 0x0b  || message_type == 0x0c ){
+     || message_type == 0x0a || message_type == 0x0b  || message_type == 0x0c 
+     || message_type == 0x0e || message_type == 0x0f ){
     printf("  [none]\n"); return;
   }
 
   if(message_type == 0x82 || message_type == 0x83 || message_type == 0x84 || message_type == 0x85 || message_type == 0x86
      || message_type == 0x87 || message_type == 0x88 || message_type == 0x89 
-     || message_type == 0x8a || message_type == 0x8b  || message_type == 0x8c ){
+     || message_type == 0x8a || message_type == 0x8b  || message_type == 0x8c 
+     || message_type == 0x8e || message_type == 0x8f  ){
     printf("  [response state]     (%02x) %s\n", response_state, response_state_string() ); 
   }
 
@@ -133,7 +142,7 @@ void ASOS_message::print(){
   }
 
   if(message_type == 0x01 || message_type == 0x83 || message_type == 0x04 || message_type == 0x85 || message_type == 0x06
-     || message_type == 0x87 ){
+     || message_type == 0x87 || message_type == 0x0d ){
     printf("  [model revosion]     %lld\n", model_revision); 
   }
   
@@ -143,7 +152,7 @@ void ASOS_message::print(){
     printf("\n");
   }
 
-  if(message_type == 0x85 || message_type == 0x06 ){
+  if(message_type == 0x85 || message_type == 0x06 || message_type == 0x0d ){
     printf("  [message (%d)]       ", message_size);
     for(i=0; i<message_size; i++) printf("%c", message[i]);
     printf("\n");
