@@ -40,11 +40,8 @@ ASOS_Object *ASOS_ObjectField::FindObject(char *in_object_id, int object_id_leng
   iter = object_map.find(object_id);
 
   if(iter != object_map.end()){
-    printf("Error: object id length too long\n");
-    printf("###  FOUND %s \n", object_id);
     return iter->second;
   }else{
-    printf("### NOT FOUND %s \n", object_id);
     return NULL;
   }
 }

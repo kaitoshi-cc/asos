@@ -203,6 +203,7 @@ ASOS_message.prototype.Print = function(){
 		break;
     case 0x84: // "update model response";
 		log("info", "[ASOS] Response State : " + this.response_state_string());
+		log("info", "[ASOS] Model Revision : " + this.model_revision);
 		break;
     case 0x85: // "pop message response";
 		log("info", "[ASOS] Response State : " + this.response_state_string());
@@ -307,6 +308,8 @@ ASOS_message.prototype.Parse = function(message){
 		break;
     case 0x84: // "update model response";
 		this.response_state = message[_index];  _index++;
+		this.model_revision = this.get_model_revision(message[_index+0], message[_index+1], message[_index+2], message[_index+3], 
+								   	 				  message[_index+4], message[_index+5], message[_index+6], message[_index+7] );
 		break;
     case 0x85: // "pop message response";
 		this.response_state = message[_index];  _index++;

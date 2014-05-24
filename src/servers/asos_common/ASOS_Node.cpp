@@ -106,8 +106,9 @@ int ASOS_Node::ProcessMessage(const unsigned char *buff, int buff_size, int ws_o
       break;
 
     case 0x84:  // "update model response";
-      if(msg.payload_size != 1) { printf("Worning: asos payload size is wrong [%s]\n", msg.message_type_string()); return -1;}
+      if(msg.payload_size != 9) { printf("Worning: asos payload size is wrong [%s]\n", msg.message_type_string()); return -1;}
       msg.response_state  = msg.payload[0];
+      msg.model_revision  = msg.get_revision_from_net(msg.payload + 1);
       ret = ProcessUpdateModelResponse(&msg);
       break;
 
@@ -639,7 +640,7 @@ void ASOS_Node::SendMessage(ASOS_message *in_msg){
   case 0x04:  // "update model command";
     in_msg->payload_size = 8 + in_msg->model_data_size; break;
   case 0x84:  // "update model response";
-    in_msg->payload_size = 1; break;
+    in_msg->payload_size = 9; break;
   case 0x05:  // "pop message command";
     in_msg->payload_size = 0; break;
   case 0x85:  // "pop message response";
@@ -773,6 +774,7 @@ void ASOS_Node::SendMessage(ASOS_message *in_msg){
     break;
   case 0x84:  // "update model response";
     message->data[_index] = in_msg->response_state;  _index++;
+    in_msg->set_revision_to_net(message->data+_index, in_msg->model_revision);  _index+=8;
     break;
   case 0x05:  // "pop message command";
     break;

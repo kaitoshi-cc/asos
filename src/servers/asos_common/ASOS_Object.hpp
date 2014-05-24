@@ -22,28 +22,28 @@ public:
   int object_id_size;
   char object_id[257];
   
-  int onPingObject(ASOS_message *in_msg, ASOS_Node *in_node);
-  int onRegisterObjectHeartbeat(ASOS_message *in_msg, ASOS_Node *in_node);
-  int onCancelObjectHeartbeat(ASOS_message *in_msg, ASOS_Node *in_node);
+  int onPingObject(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
+  int onRegisterObjectHeartbeat(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
+  int onCancelObjectHeartbeat(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
   
-  int onBrowseModel(ASOS_message *in_msg, ASOS_Node *in_node);
-  int onUpdateModel(ASOS_message *in_msg, ASOS_Node *in_node);
-  int onRegisterModelSubscription(ASOS_message *in_msg, ASOS_Node *in_node);
-  int onCancelModelSubscription(ASOS_message *in_msg, ASOS_Node *in_node);
+  int onBrowseModel(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
+  int onUpdateModel(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
+  int onRegisterModelSubscription(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
+  int onCancelModelSubscription(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
   
-  int onPushMessage(ASOS_message *in_msg, ASOS_Node *in_node);
-  int onPopMessage(ASOS_message *in_msg, ASOS_Node *in_node);
+  int onPushMessage(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
+  int onPopMessage(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
   
-  int onRegisterMessageCapture(ASOS_message *in_msg, ASOS_Node *in_node);
-  int onCancelMessageCapture(ASOS_message *in_msg, ASOS_Node *in_node);
+  int onRegisterMessageCapture(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
+  int onCancelMessageCapture(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
+
+  // Model revision
+  signed long long int revision;
 
 private:
   std::list<ASOS_Node *> object_heartbeat_registrants;
   std::list<ASOS_Node *> model_subscription_registrants;
   std::list<ASOS_Node *> message_capture_registrants;
-
-  // Model revision
-  unsigned long long int revision;
 
   // Model data
   int model_size;
