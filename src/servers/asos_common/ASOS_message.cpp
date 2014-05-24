@@ -65,6 +65,9 @@ const char *ASOS_message::response_state_string(){
   case 0x84:  return "target model revision is invalid (future revision)";
   case 0x85:  return "message size is too big";
   case 0x86:  return "queue is full";
+  case 0x87:  return "queue is empty";
+  case 0x88:  return "object already exist";
+  case 0x89:  return "server resource error";
   default:    return "(unknown)";
   }
 }

@@ -15,13 +15,15 @@ public:
   char field_id[256];
   int field_id_length;
   
-  std::map<std::string, ASOS_Object*> object_map;
-  
   int AddObject(ASOS_Object *in_object, ASOS_Node *in_node);
   int RemoveObject(ASOS_Object *in_object);
-  ASOS_Object *FindObject(char object_id, int object_id_length);
+  ASOS_Object *FindObject(char *object_id, int object_id_length);
   
   void CleanUpByNodeLeaving(ASOS_Node *in_node);
+
+private:
+  std::map<std::string, ASOS_Object*> object_map;
+
   
 };
 

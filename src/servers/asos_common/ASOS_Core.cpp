@@ -44,10 +44,24 @@ int ASOS_Core::onCreateObject(ASOS_message *in_msg, ASOS_Node *in_node){
   int ret=0;
   int index;
   ASOS_message res_msg;  res_msg.copy(in_msg);    res_msg.ModifyToResponse();
+  ASOS_Object *object;
 
   index = GetFieldIndex((char *)in_msg->object_field_identification, in_msg->object_field_identification_length);
   printf("ASOS_Core::onCreateObject %d\n", index);
   if(index >= 0 && MAX_OBJECT_FIELD_SIZE > index){
+    object = fields[index].FindObject((char *)in_msg->object_identification, in_msg->object_identification_length);
+    if(object == NULL){
+      object = new ASOS_Object((char *)in_msg->object_identification, in_msg->object_identification_length);
+      if(object != NULL){
+	fields[index].AddObject(object, in_node);
+      }else{
+	printf("Error: ASOS_Core::onCreateObject: Can't create object\n");
+	res_msg.response_state = 0x89;
+      }
+    }else{
+      printf("Worning: ASOS_Core::onCreateObject: Object already exist\n");
+      res_msg.response_state = 0x88;
+    }
   }else{
     res_msg.response_state = 0x01;
   }
