@@ -9,7 +9,20 @@
 class ASOS_Node;
 class ASOS_message;
 
+class ASOS_registered_node{
+public:
+  ASOS_registered_node(ASOS_Node *in_node);
+  ~ASOS_registered_node();
+  ASOS_Node *node;
+  // registered time stamp
+  // timeout
+};
+
 class ASOS_ApplicationMessage{
+public:
+  ASOS_ApplicationMessage();
+  ~ASOS_ApplicationMessage();
+  signed long long int target_revision;
   int message_size;
   unsigned char *message;
 };
@@ -37,13 +50,20 @@ public:
   int onRegisterMessageCapture(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
   int onCancelMessageCapture(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
 
+  int notifyObjectHeartbeat(ASOS_message *in_msg);
+  int notifyModelPublish(ASOS_message *in_msg);
+  int notifyPushedMessage(ASOS_message *in_msg);
+
   // Model revision
   signed long long int revision;
 
+  ASOS_ApplicationMessage temp_app_message;
+
 private:
-  std::list<ASOS_Node *> object_heartbeat_registrants;
-  std::list<ASOS_Node *> model_subscription_registrants;
-  std::list<ASOS_Node *> message_capture_registrants;
+  std::list<ASOS_registered_node *> object_heartbeat_registrants;
+  std::list<ASOS_registered_node *> model_subscription_registrants;
+  std::list<ASOS_registered_node *> message_capture_registrants;
+  std::list<ASOS_registered_node *> message_pop_requestors;
 
   // Model data
   int model_size;
@@ -53,6 +73,7 @@ private:
   int queue_head;
   int queue_tail;
   ASOS_ApplicationMessage *message_queue[ASOS_MAX_MESSAGE_QUEUE_SIZE];
+
 
 };
 

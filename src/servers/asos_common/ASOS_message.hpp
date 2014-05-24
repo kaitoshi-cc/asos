@@ -38,7 +38,7 @@ public:
   unsigned char response_state;    //              0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8a, 0x8b, 0x8c / 0x8e 0x8f
 
   int model_data_size;             // (      0x01,       0x83, 0x04            )
-  const unsigned char* model_data; //        0x01,       0x83, 0x04
+  const unsigned char* model_data; //        0x01,       0x83, 0x04  
 
   int message_size;                // (                              0x85, 0x06                                     / 0x0d)
   const unsigned char* message;    //                                0x85, 0x06                                     / 0x0d

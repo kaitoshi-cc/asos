@@ -289,7 +289,7 @@ ASOS_message.prototype.Parse = function(message){
 		_index+=8;
 		this.model_data = "";
 		while(_index < message.length){
-			this.model_date += ascii(message[_index]); _index++;
+			this.model_data += ascii(message[_index]); _index++;
 		}
 		break;
 	case 0x82: // "ping object response";
@@ -303,7 +303,7 @@ ASOS_message.prototype.Parse = function(message){
 		_index+=8;
 		this.model_data = "";
 		while(_index < message.length){
-			this.model_date += ascii(message[_index]); _index++;
+			this.model_data += ascii(message[_index]); _index++;
 		}
 		break;
     case 0x84: // "update model response";
