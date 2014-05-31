@@ -6,6 +6,11 @@ public:
   ASOS_message();
   ~ASOS_message();
 
+  // Stack header
+  unsigned char protocol_type;  // 0x01: ASOSPv1
+  
+  // ASOSPv1 
+  // -- header
   unsigned char message_type;
   unsigned char wait_time_for_response;
   unsigned char registration_lifetime;
@@ -22,14 +27,7 @@ public:
   int payload_size;
   const unsigned char *payload;
 
-  const char *message_type_string();
-  const char *response_state_string();
-  const char *object_state_string();
-
-  void print();
-  void copy(ASOS_message *src);
-  void ModifyToResponse();
-  // ------------------------------------------------------
+  // -- payload
 
   // none                          //              0x02, 0x03        0x05,       0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c / 0x0e 0x0f
 
@@ -43,8 +41,17 @@ public:
   int message_size;                // (                              0x85, 0x06                                     / 0x0d)
   const unsigned char* message;    //                                0x85, 0x06                                     / 0x0d
 
+
+  // ------------------------------------------------------
   static long long int get_revision_from_net(const unsigned char *buff);
   static void set_revision_to_net(unsigned char *buff, long long int rev);
+  const char *message_type_string();
+  const char *response_state_string();
+  const char *object_state_string();
+
+  void print();
+  void copy(ASOS_message *src);
+  void ModifyToResponse();
 
 };
 

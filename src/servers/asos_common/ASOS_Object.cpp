@@ -43,7 +43,6 @@ ASOS_Object::ASOS_Object(char *in_object_id, int object_id_length){
 ASOS_Object::~ASOS_Object(){
 }
 
-
 int ASOS_Object::onPingObject(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node){
   in_res_msg->object_state = 0x01;
   in_res_msg->response_state = 0x00;

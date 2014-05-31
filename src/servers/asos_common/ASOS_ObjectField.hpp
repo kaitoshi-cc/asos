@@ -14,6 +14,8 @@ public:
   
   char field_id[256];
   int field_id_length;
+
+  int Process(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
   
   int AddObject(ASOS_Object *in_object, ASOS_Node *in_node);
   int RemoveObject(ASOS_Object *in_object);

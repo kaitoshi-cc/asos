@@ -16,6 +16,7 @@ sub_src += ../asos_common/ASOS_message.cpp
 sub_src += ../asos_common/ASOS_Core.cpp
 sub_src += ../asos_common/ASOS_ObjectField.cpp
 sub_src += ../asos_common/ASOS_Object.cpp
+sub_src += ../asos_common/ASOS_Protocolv1.cpp
 
 header   = ../server_common/Server.hpp
 header  += ../server_common/Signal.hpp 
@@ -30,6 +31,7 @@ header  += ../asos_common/ASOS_message.hpp
 header  += ../asos_common/ASOS_Core.hpp
 header  += ../asos_common/ASOS_ObjectField.hpp
 header  += ../asos_common/ASOS_Object.hpp
+header  += ../asos_common/ASOS_Protocolv1.hpp
 
 include_dir = -I../server_common/ -I../asos_common/
 

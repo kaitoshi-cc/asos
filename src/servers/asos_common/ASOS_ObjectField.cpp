@@ -48,4 +48,8 @@ ASOS_Object *ASOS_ObjectField::FindObject(char *in_object_id, int object_id_leng
 
 void ASOS_ObjectField::CleanUpByNodeLeaving(ASOS_Node *in_node){
   printf("Leave node %p on %s\n", in_node, field_id);
+
+  //  **** [TODO] Add clean up process implementation **** 
+
+
 }
