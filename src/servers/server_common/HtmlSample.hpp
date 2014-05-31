@@ -21,7 +21,7 @@ ws.onopen = function(event){alert(\"vvv\");}\
 const char *sample_response_websock = "HTTP/1.1 101 Switching Protocols\r\n\
 Upgrade: websocket\r\n\
 Connection: Upgrade\r\n\
-Sec-WebSocket-Protocol: proto1\r\n\
+Sec-WebSocket-Protocol: asos\r\n\
 Sec-WebSocket-Accept: ";
 
 const char *sample_response_with_keep_alive_large = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=\"ISO-2022-JP\"\r\nContent-Transfer-Encoding: 7bit\r\nContent-Length: 400004\r\nConnection: Keep-Alive\r\n\r\ntest\
