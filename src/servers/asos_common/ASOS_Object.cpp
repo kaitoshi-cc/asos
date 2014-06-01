@@ -223,14 +223,14 @@ int ASOS_Object::onPopMessage(ASOS_message *in_msg, ASOS_message *in_res_msg, AS
     // If there are already registered node that has same node and meesage-id, 
     // it should updated for timeout value without new registration.
     for(iter = message_pop_requestors.begin(); iter != message_pop_requestors.end(); iter++ ){
-      if( (*iter)->node == in_node 
-	  && (*iter)->res_msg->message_identification[0] == in_res_msg->message_identification[0]
-	  && (*iter)->res_msg->message_identification[1] == in_res_msg->message_identification[1]  ){ 
+      if( ( (*iter)->node == in_node )
+	  && ( (*iter)->res_msg->message_identification[0] == in_res_msg->message_identification[0] )
+	  && ( (*iter)->res_msg->message_identification[1] == in_res_msg->message_identification[1] ) ){ 
 
 	(*iter)->res_msg->wait_time_for_response = in_res_msg->wait_time_for_response;
 	(*iter)->res_msg->registration_lifetime = in_res_msg->registration_lifetime;
 
-	already_registered_flag == 1; 
+	already_registered_flag = 1; 
 	break; 
       }
     }
@@ -353,37 +353,54 @@ void ASOS_Object::CleanUpByNodeLeaving(ASOS_Node *in_node){
   std::list<ASOS_registered_node *>::iterator iter;
   ASOS_registered_node *reg;
 
-  for(iter = model_subscription_registrants.begin(); iter != model_subscription_registrants.end(); iter++ ){
-    if( (*iter)->node == in_node ){ 
-      reg = *iter; 
-      model_subscription_registrants.erase(iter); 
-      if(reg != NULL){
-	delete reg;
-      }
-      break;
-    }
-  }
-  for(iter = message_capture_registrants.begin(); iter != message_capture_registrants.end(); iter++ ){
-    if( (*iter)->node == in_node ){ 
-      reg = *iter; 
-      message_capture_registrants.erase(iter); 
-      if(reg != NULL){
-	delete reg;
-      }
-      break;
-    }
-  }
-  for(iter = message_pop_requestors.begin(); iter != message_pop_requestors.end(); iter++ ){
-    if( (*iter)->node == in_node ){ 
-      reg = *iter; 
-      message_pop_requestors.erase(iter); 
-      if(reg != NULL){
-	if(reg->res_msg != NULL){
-	  delete reg->res_msg;
+  while(iter != model_subscription_registrants.end()){
+    for(iter = model_subscription_registrants.begin(); iter != model_subscription_registrants.end(); iter++ ){
+      if( (*iter)->node == in_node ){ 
+	reg = *iter; 
+	model_subscription_registrants.erase(iter); 
+	if(reg != NULL){
+	  delete reg;
 	}
-	delete reg;
+	printf("#### delete subscription\n");
+	break;
       }
-      break;
+    }
+  }
+
+  while(iter != message_capture_registrants.end()){
+    for(iter = message_capture_registrants.begin(); iter != message_capture_registrants.end(); iter++ ){
+      if( (*iter)->node == in_node ){ 
+	reg = *iter; 
+	message_capture_registrants.erase(iter); 
+	if(reg != NULL){
+	  delete reg;
+	}
+	printf("#### delete capture\n");
+	break;
+      }
+    }
+  }
+
+  while(iter != message_pop_requestors.end()){
+
+    for(iter = message_pop_requestors.begin(); iter != message_pop_requestors.end(); iter++ ){
+      if( (*iter)->node == in_node ){ 
+	reg = *iter; 
+	printf("#### delete pop request %p 0x%02x%02x %s\n", *iter,
+	       (*iter)->res_msg->message_identification[0], 
+	       (*iter)->res_msg->message_identification[1], 
+	       object_id
+	       );
+
+	message_pop_requestors.erase(iter); 
+	if(reg != NULL){
+	  if(reg->res_msg != NULL){
+	    delete reg->res_msg;
+	  }
+	  delete reg;
+	}
+	break;
+      }
     }
   }
 }

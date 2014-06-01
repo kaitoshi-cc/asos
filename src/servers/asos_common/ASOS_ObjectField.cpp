@@ -6,20 +6,18 @@ ASOS_ObjectField::ASOS_ObjectField(){
 }
 
 ASOS_ObjectField::~ASOS_ObjectField(){
-}
-
-int ASOS_ObjectField::AddObject(ASOS_Object *in_object, ASOS_Node *in_node){
-  object_map.insert( std::map<std::string, ASOS_Object *>::value_type(in_object->object_id , in_object) );
-
-  // todo : added multimap of node to object. It is usefull at node leaving process.
-
-  
   std::map<std::string, ASOS_Object *>::iterator iter;
 
   for(iter = object_map.begin(); iter != object_map.end(); iter++){
     printf("##### Object id = %s, p = %p\n", iter->first.c_str(), iter->second);
+    delete iter->second;
   }
+  
+  
+}
 
+int ASOS_ObjectField::AddObject(ASOS_Object *in_object, ASOS_Node *in_node){
+  object_map.insert( std::map<std::string, ASOS_Object *>::value_type(in_object->object_id , in_object) );
 }
 
 int ASOS_ObjectField::RemoveObject(ASOS_Object *in_object){

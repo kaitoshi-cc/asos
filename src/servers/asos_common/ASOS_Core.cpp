@@ -43,7 +43,7 @@ int ASOS_Core::Process(ASOS_message *in_msg, ASOS_Node *in_node, ASOS_Protocolv1
   int ret=0;
   int index;
   ASOS_message res_msg;  res_msg.copy(in_msg);    res_msg.ModifyToResponse();
-  ASOS_Object *object;
+  ASOS_Object *object=NULL;
 
   index = GetFieldIndex((char *)in_msg->object_field_identification, in_msg->object_field_identification_length);
   printf("ASOS_Core::Process Field ID = %d\n", index);
@@ -91,6 +91,16 @@ int ASOS_Core::Process(ASOS_message *in_msg, ASOS_Node *in_node, ASOS_Protocolv1
 	  AfterProcess_for_Object(object, in_msg, &res_msg, in_node);
 	}
       }
+    }
+  }
+
+  //********************************************
+  //  Clear temporary message buffer 
+  //********************************************
+  if(object != NULL){
+    if(object->temp_app_message.message != NULL){
+      free(object->temp_app_message.message);
+      object->temp_app_message.message = NULL;
     }
   }
   
