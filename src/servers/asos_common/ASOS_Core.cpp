@@ -213,6 +213,7 @@ int ASOS_Core::onCreateObject(ASOS_ObjectField *in_field, ASOS_message *in_msg, 
     }
   }else{
     printf("Worning: ASOS_Core::onCreateObject: Object already exist\n");
+    in_res_msg->model_revision = object->revision;
     in_res_msg->response_state = 0x88;
   }
 
