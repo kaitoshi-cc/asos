@@ -8,6 +8,7 @@ ASOS_message::ASOS_message(){
   payload = NULL;
   model_data = NULL;
   message = NULL;
+  long_polling_flag = 0;
 }
 
 ASOS_message::~ASOS_message(){

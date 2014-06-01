@@ -14,6 +14,7 @@ public:
   ASOS_registered_node(ASOS_Node *in_node);
   ~ASOS_registered_node();
   ASOS_Node *node;
+  ASOS_message *res_msg;
   // registered time stamp
   // timeout
 };

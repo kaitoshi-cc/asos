@@ -71,9 +71,9 @@ int ASOS_Core::Process(ASOS_message *in_msg, ASOS_Node *in_node, ASOS_Protocolv1
   }
 
   //********************************************
-  //  After processing
+  //  Send response
   //********************************************
-  if(in_node != NULL){
+  if(in_node != NULL && res_msg.long_polling_flag != 1 ){
     in_node->SendMessage(&res_msg);
   }
   

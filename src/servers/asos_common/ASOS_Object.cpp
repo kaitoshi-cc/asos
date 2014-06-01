@@ -133,11 +133,49 @@ int ASOS_Object::onPushMessage(ASOS_message *in_msg, ASOS_message *in_res_msg, A
     if(app_msg->message != NULL){
       memcpy(app_msg->message, in_msg->message, app_msg->message_size);
       app_msg->message[app_msg->message_size] = '\0';
-      
-      message_queue[queue_tail] = app_msg;
-      queue_tail = (queue_tail + 1) % ASOS_MAX_MESSAGE_QUEUE_SIZE;
-      if( queue_tail == queue_head ){
-	if(message_queue[queue_tail] != NULL ) delete message_queue[queue_tail];	
+
+      if( !message_pop_requestors.empty() ){
+	// If there are long polling pop command, send message to the node.
+	ASOS_registered_node *reg = message_pop_requestors.front();
+	message_pop_requestors.pop_front();
+	if(reg != NULL){
+	  if(reg->res_msg != NULL){
+	    if(reg->node != NULL){
+
+	      temp_app_message.target_revision = app_msg->target_revision;
+	      temp_app_message.message_size = app_msg->message_size;
+	      temp_app_message.message = app_msg->message;
+	      app_msg->message = NULL;
+	      delete app_msg;
+
+	      reg->res_msg->object_field_identification = in_res_msg->object_field_identification;
+	      reg->res_msg->object_identification = in_res_msg->object_identification; 
+
+	      reg->res_msg->model_revision = temp_app_message.target_revision;
+	      reg->res_msg->message_size   = temp_app_message.message_size;
+	      reg->res_msg->message        = temp_app_message.message;
+	      reg->res_msg->response_state = 0x00;
+	      
+	      reg->node->SendMessage(reg->res_msg);
+	    }else{
+	      printf("ERROR: ASOS_Object::onPushMessage: registered node pointer is NULL\n");
+	    }
+	    delete reg->res_msg;
+	  }else{
+	    printf("ERROR: ASOS_Object::onPushMessage: registered message is NULL\n");
+	  }
+	  delete reg;
+	}else{
+	  printf("ERROR: ASOS_Object::onPushMessage: registered node is NULL\n");
+	}
+
+      }else{
+	// Push message to ring queue
+	message_queue[queue_tail] = app_msg;
+	queue_tail = (queue_tail + 1) % ASOS_MAX_MESSAGE_QUEUE_SIZE;
+	if( queue_tail == queue_head ){
+	  if(message_queue[queue_tail] != NULL ) delete message_queue[queue_tail];	
+	}
       }
       
       in_res_msg->response_state = 0x00;
@@ -174,10 +212,42 @@ int ASOS_Object::onPopMessage(ASOS_message *in_msg, ASOS_message *in_res_msg, AS
     }
     
   }else{
-
-    // *** TODO : wait for long polling ***
-
+    // for long polling 
+    in_res_msg->long_polling_flag = 1;
     in_res_msg->response_state = 0x87;
+
+    int already_registered_flag = 0;
+
+    std::list<ASOS_registered_node *>::iterator iter;
+
+    // If there are already registered node that has same node and meesage-id, 
+    // it should updated for timeout value without new registration.
+    for(iter = message_pop_requestors.begin(); iter != message_pop_requestors.end(); iter++ ){
+      if( (*iter)->node == in_node 
+	  && (*iter)->res_msg->message_identification[0] == in_res_msg->message_identification[0]
+	  && (*iter)->res_msg->message_identification[1] == in_res_msg->message_identification[1]  ){ 
+
+	(*iter)->res_msg->wait_time_for_response = in_res_msg->wait_time_for_response;
+	(*iter)->res_msg->registration_lifetime = in_res_msg->registration_lifetime;
+
+	already_registered_flag == 1; 
+	break; 
+      }
+    }
+
+    if(already_registered_flag == 0){
+      ASOS_registered_node *reg = new ASOS_registered_node(in_node);
+      ASOS_message *saved_res_msg = new ASOS_message();
+      saved_res_msg->copy(in_res_msg);
+      saved_res_msg->object_field_identification = NULL;
+      saved_res_msg->object_identification = NULL; 
+      saved_res_msg->payload    = NULL;
+      saved_res_msg->model_data = NULL;
+      saved_res_msg->message    = NULL;
+
+      reg->res_msg = saved_res_msg;
+      message_pop_requestors.push_back(reg);
+    }
   }
 
 }
@@ -308,11 +378,13 @@ void ASOS_Object::CleanUpByNodeLeaving(ASOS_Node *in_node){
       reg = *iter; 
       message_pop_requestors.erase(iter); 
       if(reg != NULL){
+	if(reg->res_msg != NULL){
+	  delete reg->res_msg;
+	}
 	delete reg;
       }
       break;
     }
   }
- 
-
 }
+

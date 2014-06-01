@@ -76,5 +76,12 @@ ASOS_Protocolv1::ASOS_Protocolv1(){
 }
 
 ASOS_Protocolv1::~ASOS_Protocolv1(){
+  int i;
+  for(i = 0 ; i < 256; i++){
+    if(info[i] != NULL){
+      delete info[i];
+      info[i] = NULL;
+    }
+  }
 }
 

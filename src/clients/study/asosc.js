@@ -379,7 +379,9 @@ function StartSession(asos){
 }
 
 // --------------------------------------------------------------------------
-function ASOS_Object(){}
+function ASOS_Object(){
+	this.pop_message_id = 0;
+}
 // --------------------------------------------------------------------------
 ASOS_Object.prototype.set_id    = function(id)    { this.id = id; }
 ASOS_Object.prototype.set_model = function(model) { this.model = model; }
@@ -399,7 +401,13 @@ ASOS_Object.prototype.update = function(){
 
 ASOS_Object.prototype.pop = function(continue_flag){
 	timeout = 5;
-	this.field.asos.protocol.PopMessage(this.field.id, this.id, timeout);
+
+	if(this.pop_message_id == 0){
+		this.pop_message_id = this.field.asos.protocol.get_next_message_id();
+		// TODO : Reserve pop_message_id in this.field.asos.protocol in order to prevent re-use this message id for the other purpose.
+	}
+	
+	this.field.asos.protocol.PopMessage(this.field.id, this.id, timeout, this.pop_message_id);
 	var object = this;
 	if(continue_flag == true) setTimeout( function(){ object.pop(true); } , timeout*1000);
 }
@@ -562,13 +570,13 @@ ASOS_Protocol.prototype.CreateObject = function(field_id, object_id){
 	this.sock.send(blob);
 }
 
-ASOS_Protocol.prototype.PopMessage = function(field_id, object_id, timeout){
+ASOS_Protocol.prototype.PopMessage = function(field_id, object_id, timeout, message_id){
 	var original_array = [0x01,0x00, 0x05];
 	if(timeout > 0xFF) timeout = 0xFF;
 	original_array.push(timeout);
 	original_array.push(0x00);
 	original_array.push(0x00);
-	var mgsid = this.get_next_message_id();
+	var mgsid = message_id;
 	original_array.push(Math.floor(mgsid/0x0100));
 	original_array.push(Math.floor(mgsid%0x0100));
 	original_array.push(field_id.length);
