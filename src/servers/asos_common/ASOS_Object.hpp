@@ -54,6 +54,8 @@ public:
   int notifyModelPublish(ASOS_message *in_msg);
   int notifyPushedMessage(ASOS_message *in_msg);
 
+  void CleanUpByNodeLeaving(ASOS_Node *in_node);
+
   // Model revision
   signed long long int revision;
 

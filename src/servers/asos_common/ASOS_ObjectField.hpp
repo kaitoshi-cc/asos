@@ -25,7 +25,6 @@ public:
 
 private:
   std::map<std::string, ASOS_Object*> object_map;
-
   
 };
 

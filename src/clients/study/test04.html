@@ -254,6 +254,26 @@ ASOS_message.prototype.get_model_revision = function(c0,c1,c2,c3,c4,c5,c6,c7){
 		 + (c4 * 0x0000000001000000) + (c5 * 0x0000000000010000)+ (c6 * 0x0000000000000100)+ (c7 * 0x0000000000000001);
 }
 
+ASOS_message.prototype.get_message_category = function(){
+	switch(this.message_type){
+		case 0x00: case 0x01: case 0x82: case 0x83: case 0x86: 
+		case 0x88: case 0x89: case 0x8b: case 0x8c: case 0x0d: case 0x8e: case 0x8f: 
+		return "responce_consumer";
+		break;
+		
+		case 0x84: case 0x85: case 0x87: case 0x8a:
+		return "responce_producer";
+		break;
+		                      case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07: 
+		case 0x08: case 0x09: case 0x0a: case 0x0b: case 0x0c:            case 0x0e: case 0x0f: 
+		return "command";
+		break;
+		default:
+		return "unknown";
+		break;
+	}
+}
+
 ASOS_message.prototype.Parse = function(message){
 
 	this.protocol_type                      = message[0];
@@ -425,12 +445,6 @@ function atoc(a){
 	}
 }
 
-function ProcessASOS(message){
-	if(message.length <= 8) return;
-	asos_msg = new ASOS_message();
-	asos_msg.Parse(message);
-	asos_msg.Print();
-}
 
 function event_string(event){
 	return event.type + "," + event.target + "," + event.currentTarget + "," + event.eventPhase  + "," + event.bubbles  + "," +  event.cancelable + "," + event.timeStamp;
@@ -442,21 +456,18 @@ function event_string(event){
 function StartSession(asos){
 	log("info", "start ASOS Session");
 	
-	for( var i=0; i <  asos.object_fields.length ; i++){
-		log("info", "Object Field ID = " + asos.object_fields[i].id);
-		for( var j=0 ;j< asos.object_fields[i].producer_objects.length; j++){
-			log("info", "Producer Object ID = " + asos.object_fields[i].producer_objects[j].id);
-			asos.protocol.CreateObject(asos.object_fields[i].id, asos.object_fields[i].producer_objects[j].id);
-			asos.object_fields[i].producer_objects[j].update();
+	for( var fid in asos.object_fields ){
+		log("info", "Object Field ID = " + fid);
+		for( var poid in asos.object_fields[fid].producer_objects){
+			log("info", "Produced Object ID = " + poid);
+			asos.protocol.CreateObject(fid, asos.object_fields[fid].producer_objects[poid].id);
 		}
-		for( j=0 ;j< asos.object_fields[i].consumer_objects.length; j++){
-			log("info", "Consumer Object ID = " + asos.object_fields[i].consumer_objects[j].id);
-			asos.object_fields[i].producer_objects[j].subscribe();
+		for( var coid in asos.object_fields[fid].consumer_objects){
+			log("info", "Consumed Object ID = " + coid);
+			asos.object_fields[fid].producer_objects[coid].subscribe();
 		}
 	}
-
 }
-
 
 // --------------------------------------------------------------------------
 function ASOS_Object(){}
@@ -468,69 +479,173 @@ ASOS_Object.prototype.set_field = function(field) { this.field = field; }
 ASOS_Object.prototype.update = function(){
 	var json_object = JSON.stringify(this.model);
 	log("info", "MODEL(JSON): " + json_object);
-	this.field.asos.protocol.UpdateModel(this.field.id, this.id, json_object);
+	this.field.asos.protocol.UpdateModel(this.field.id, this.id, this.model_revision,json_object);
 }
 
 ASOS_Object.prototype.subscribe = function(){
 	this.field.asos.protocol.RegisterModelSubscription(this.field.id, this.id);
 }
 
+ASOS_Object.prototype.ProducerProcess = function(asos_msg){
+	switch(asos_msg.message_type){
+		case 0x84: //"update model response"
+			if( asos_msg.response_state == 0x00 || asos_msg.response_state == 0x80 || asos_msg.response_state == 0x81){
+				this.model_revision = asos_msg.model_revision;
+			}
+		break;
+
+		case 0x85: //"pop message response"
+		break;
+
+		case 0x87: //"create object response"
+			if( asos_msg.response_state == 0x00 || asos_msg.response_state == 0x88){
+				this.model_revision = asos_msg.model_revision;
+				this.update();
+			}
+		break;
+
+		case 0x8a: //"delete object response"
+		break;
+	}
+}
+
+ASOS_Object.prototype.ConsumerModelUpdated = function(){
+	var str = "";
+	for(var p in this.model){
+		str += p + " = " + this.model[p] + " / ";
+	}
+
+	log("info", "ConsumerModelUpdated (rev:" + this.model_revision + ") : " + str);
+}
+
+ASOS_Object.prototype.ConsumerProcess = function(asos_msg){
+	switch(asos_msg.message_type){
+		case 0x00: //"object heart beat"
+		break;
+		
+		case 0x01: //"model publish"
+			this.model_revision = asos_msg.model_revision;
+			this.model = JSON.parse(asos_msg.model_data);
+			this.ConsumerModelUpdated();
+		break;
+		
+		case 0x82: //"ping object response"
+		break;
+		
+		case 0x83: //"browse model response"
+			if( asos_msg.response_state == 0x00 ){
+				this.model_revision = asos_msg.model_revision;
+				this.model = JSON.parse(asos_msg.model_data);
+				this.ConsumerModelUpdated();
+			}
+		break;
+		
+		case 0x86: //"push message response"
+		break;
+		
+		case 0x88: //"register object heartbeat response"
+		break;
+		
+		case 0x89: //"register model subscription response"
+		break;
+		
+		case 0x8b: //"cancel object heartbeat response"
+		break;
+		
+		case 0x8c: //"cancel model subscription response"
+		break;
+		
+		case 0x0d: //"captured message"
+		break;
+
+		case 0x8e: //"register message capture response"
+		break;
+
+		case 0x8f: //"cancel message capture response"
+		break;
+	}
+}
+
 // --------------------------------------------------------------------------
 function ASOS_ObjectField(){
-	this.producer_objects = [];
-	this.consumer_objects = [];
+	this.producer_objects = {};
+	this.consumer_objects = {};
 }
 // --------------------------------------------------------------------------
 ASOS_ObjectField.prototype.set_id   = function(id)   { this.id = id; }
 ASOS_ObjectField.prototype.set_asos = function(asos) { this.asos = asos; }
 
 ASOS_ObjectField.prototype.add_producer_object = function(obj) { 
-	this.producer_objects.push(obj);
+	this.producer_objects[obj.id] = obj;
 	obj.set_field(this);
 }
 ASOS_ObjectField.prototype.add_consumer_object = function(obj) { 
-	this.consumer_objects.push(obj);
+	this.consumer_objects[obj.id] = obj;
 	obj.set_field(this);
 }
 
 // --------------------------------------------------------------------------
-function ASOS_Protocol(){}
+function ASOS_Protocol(){
+	this.message_id = Math.floor( Math.random() * 0xffff );
+}
 // --------------------------------------------------------------------------
 
+ASOS_Protocol.prototype.get_next_message_id = function(){
+	this.message_id = (this.message_id+1) % 0x10000;
+	return this.message_id;
+}
+
 ASOS_Protocol.prototype.RegisterModelSubscription = function(field_id, object_id){
-	var original_array = [0x01,0x00, 0x09,0x00,0x3c,0x00 ,0x00,0x08];
+	var original_array = [0x01,0x00, 0x09,0x00,0x3c,0x00];
+	var mgsid = this.get_next_message_id();
+	original_array.push(Math.floor(mgsid/0x0100));
+	original_array.push(Math.floor(mgsid%0x0100));
 	original_array.push(field_id.length);
 	original_array.push(object_id.length);
 	for(i=0; i<field_id.length; i++)	original_array.push(atoc(field_id[i]));
 	for(i=0; i<object_id.length; i++)	original_array.push(atoc(object_id[i]));
-
+	
 	ary_u8 = new Uint8Array(original_array);
 	blob   = new Blob([ary_u8] , {type:"application/octet-stream"}); 
 	this.sock.send(blob);
 }
 
 ASOS_Protocol.prototype.CreateObject = function(field_id, object_id){
-	var original_array = [0x01,0x00, 0x07,0x05,0x00,0x80 ,0x00,0x06];
-	original_array.push(field_id.length);
-	original_array.push(object_id.length);
-	for(i=0; i<field_id.length; i++)	original_array.push(atoc(field_id[i]));
-	for(i=0; i<object_id.length; i++)	original_array.push(atoc(object_id[i]));
-
-	ary_u8 = new Uint8Array(original_array);
-	blob   = new Blob([ary_u8] , {type:"application/octet-stream"}); 
-	this.sock.send(blob);
-}
-
-ASOS_Protocol.prototype.UpdateModel = function(field_id, object_id, model_data){
-	var original_array = [0x01,0x00, 0x04,0x05,0x00,0x00 ,0x00,0x03];
+	var original_array = [0x01,0x00, 0x07,0x05,0x00,0x80];
+	var mgsid = this.get_next_message_id();
+	original_array.push(Math.floor(mgsid/0x0100));
+	original_array.push(Math.floor(mgsid%0x0100));
 	original_array.push(field_id.length);
 	original_array.push(object_id.length);
 	for(i=0; i<field_id.length; i++)	original_array.push(atoc(field_id[i]));
 	for(i=0; i<object_id.length; i++)	original_array.push(atoc(object_id[i]));
 	
-	original_array.push(0x00);original_array.push(0x00);original_array.push(0x00);original_array.push(0x00);
-	original_array.push(0x00);original_array.push(0x00);original_array.push(0x00);original_array.push(0x01);
+	ary_u8 = new Uint8Array(original_array);
+	blob   = new Blob([ary_u8] , {type:"application/octet-stream"}); 
+	this.sock.send(blob);
+}
 
+ASOS_Protocol.prototype.UpdateModel = function(field_id, object_id, revision, model_data){
+	var original_array = [0x01,0x00, 0x04,0x05,0x00,0x00];
+	var mgsid = this.get_next_message_id();
+	original_array.push(Math.floor(mgsid/0x0100));
+	original_array.push(Math.floor(mgsid%0x0100));
+	original_array.push(field_id.length);
+	original_array.push(object_id.length);
+	for(i=0; i<field_id.length; i++)	original_array.push(atoc(field_id[i]));
+	for(i=0; i<object_id.length; i++)	original_array.push(atoc(object_id[i]));
+	
+	original_array.push( ( revision & 0xFF00000000000000) / 0x0100000000000000 );
+	original_array.push( ( revision & 0x00FF000000000000) / 0x0001000000000000 );
+	original_array.push( ( revision & 0x0000FF0000000000) / 0x0000010000000000 );
+	original_array.push( ( revision & 0x000000FF00000000) / 0x0000000100000000 );
+	original_array.push( ( revision & 0x00000000FF000000) / 0x0000000001000000 );
+	original_array.push( ( revision & 0x0000000000FF0000) / 0x0000000000010000 );
+	original_array.push( ( revision & 0x000000000000FF00) / 0x0000000000000100 );
+	original_array.push( ( revision & 0x00000000000000FF) / 0x0000000000000001 );
+//	original_array.push(0x00);original_array.push(0x00);original_array.push(0x00);original_array.push(0x00);
+//	original_array.push(0x00);original_array.push(0x00);original_array.push(0x00);original_array.push(0x01);
+	
 	for(i=0; i<model_data.length; i++)	original_array.push(atoc(model_data[i]));
 	
 	ary_u8 = new Uint8Array(original_array);
@@ -544,6 +659,32 @@ ASOS_Protocol.prototype.Process = function(message){
 	asos_msg = new ASOS_message();
 	asos_msg.Parse(message);
 	asos_msg.Print();
+	var object;
+	
+	if(asos_msg.get_message_category() == "responce_consumer" || asos_msg.get_message_category() == "responce_producer" ){
+		if(asos_msg.object_field_identification in this.sock.asos.object_fields ){
+			if(asos_msg.get_message_category() == "responce_producer"){
+				if(asos_msg.object_identification in this.sock.asos.object_fields[asos_msg.object_field_identification].producer_objects ){
+					object = this.sock.asos.object_fields[asos_msg.object_field_identification].producer_objects[asos_msg.object_identification];
+					object.ProducerProcess(asos_msg);
+				}else{
+					log("error", "ASOS_Protocol.prototype.Process: There are no produced object (ID: " + asos_msg.object_identification + " in the Client.");
+				}
+			}else{
+				if(asos_msg.object_identification in this.sock.asos.object_fields[asos_msg.object_field_identification].consumer_objects ){
+					object = this.sock.asos.object_fields[asos_msg.object_field_identification].consumer_objects[asos_msg.object_identification];
+					object.ConsumerProcess(asos_msg);
+				}else{
+					log("error", "ASOS_Protocol.prototype.Process: There are no consumed object (ID: " + asos_msg.object_identification + " in the Client.");
+				}
+			}
+		
+		}else{
+			log("error", "ASOS_Protocol.prototype.Process: There are no fieid (ID: " + asos_msg.object_field_identification + " in the Client.");
+		}
+	}else{
+		log("error", "ASOS_Protocol.prototype.Process: Wrong message type (" + asos_msg.get_message_category() + ")");
+	}
 }
 
 ASOS_Protocol.prototype.sock_onmessage_as_array_buffer = function(event){
@@ -559,7 +700,7 @@ ASOS_Protocol.prototype.sock_onmessage_as_array_buffer = function(event){
 
 // --------------------------------------------------------------------------
 function ASOS_Clinet(){
-	this.object_fields = [];
+	this.object_fields = {};
 }
 // --------------------------------------------------------------------------
 
@@ -588,7 +729,7 @@ ASOS_Clinet.prototype.sock_onmessage = function(event){
 }
 
 ASOS_Clinet.prototype.add_object_field = function(object_field){
-	this.object_fields.push(object_field);
+	this.object_fields[object_field.id] = object_field;
 	object_field.set_asos(this);
 }
 
@@ -631,7 +772,6 @@ function main(){
 	
 	object_field.add_producer_object(object);
 	object_field.add_consumer_object(object2);
-	
 	
 	asos.start("ws://172.16.0.3/chat");
 	

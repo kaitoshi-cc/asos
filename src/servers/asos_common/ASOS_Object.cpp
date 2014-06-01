@@ -95,6 +95,9 @@ int ASOS_Object::onRegisterModelSubscription(ASOS_message *in_msg, ASOS_message 
     ASOS_registered_node *reg = new ASOS_registered_node(in_node);
     model_subscription_registrants.push_back(reg);
     in_res_msg->response_state = 0x00;
+
+    in_node->model_subscription_list.push_back(this);
+
   }else{
     in_res_msg->response_state = 0x00;
   }
@@ -111,6 +114,9 @@ int ASOS_Object::onCancelModelSubscription(ASOS_message *in_msg, ASOS_message *i
       if(reg != NULL){
 	delete reg;
       }
+
+      in_node->model_subscription_list.remove(this);
+
       break; 
     }
   }
@@ -188,6 +194,9 @@ int ASOS_Object::onRegisterMessageCapture(ASOS_message *in_msg, ASOS_message *in
     ASOS_registered_node *reg = new ASOS_registered_node(in_node);
     message_capture_registrants.push_back(reg);
     in_res_msg->response_state = 0x00;
+
+    in_node->message_capture_list.push_back(this);
+
   }else{
     in_res_msg->response_state = 0x00;
   }
@@ -203,6 +212,9 @@ int ASOS_Object::onCancelMessageCapture(ASOS_message *in_msg, ASOS_message *in_r
       if(reg != NULL){
 	delete reg;
       }
+
+      in_node->message_capture_list.remove(this);
+
       break; 
     }
   }
@@ -266,3 +278,41 @@ int ASOS_Object::notifyPushedMessage(ASOS_message *in_msg){
   }
 }
 
+
+void ASOS_Object::CleanUpByNodeLeaving(ASOS_Node *in_node){
+  std::list<ASOS_registered_node *>::iterator iter;
+  ASOS_registered_node *reg;
+
+  for(iter = model_subscription_registrants.begin(); iter != model_subscription_registrants.end(); iter++ ){
+    if( (*iter)->node == in_node ){ 
+      reg = *iter; 
+      model_subscription_registrants.erase(iter); 
+      if(reg != NULL){
+	delete reg;
+      }
+      break;
+    }
+  }
+  for(iter = message_capture_registrants.begin(); iter != message_capture_registrants.end(); iter++ ){
+    if( (*iter)->node == in_node ){ 
+      reg = *iter; 
+      message_capture_registrants.erase(iter); 
+      if(reg != NULL){
+	delete reg;
+      }
+      break;
+    }
+  }
+  for(iter = message_pop_requestors.begin(); iter != message_pop_requestors.end(); iter++ ){
+    if( (*iter)->node == in_node ){ 
+      reg = *iter; 
+      message_pop_requestors.erase(iter); 
+      if(reg != NULL){
+	delete reg;
+      }
+      break;
+    }
+  }
+ 
+
+}

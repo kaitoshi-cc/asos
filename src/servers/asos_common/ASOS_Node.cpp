@@ -12,6 +12,18 @@ ASOS_Node::~ASOS_Node(){
 
 void ASOS_Node::Leave(){
   asos_core->CleanUpByNodeLeaving(this);
+  std::list<ASOS_Object *>::iterator iter;
+
+  for(iter = model_subscription_list.begin(); iter != model_subscription_list.end(); iter++){
+    (*iter)->CleanUpByNodeLeaving(this);
+  }
+  for(iter = message_capture_list.begin(); iter != message_capture_list.end(); iter++){
+    (*iter)->CleanUpByNodeLeaving(this);
+  }
+  for(iter = message_pop_list.begin(); iter != message_pop_list.end(); iter++){
+    (*iter)->CleanUpByNodeLeaving(this);
+  }
+
 }
 
 int ASOS_Node::ProcessMessage(const unsigned char *buff, int buff_size, int ws_opcode){
