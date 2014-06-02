@@ -296,56 +296,96 @@ int ASOS_Object::notifyObjectHeartbeat(ASOS_message *in_msg){
 }
 
 int ASOS_Object::notifyModelPublish(ASOS_message *in_msg){
-  std::list<ASOS_registered_node *>::iterator iter;
-
-  in_msg->message_type = 0x01; 
-  in_msg->wait_time_for_response = 0x00;
-  in_msg->registration_lifetime = 0x00;
-  in_msg->lifetime_overwrite_flag = 0x00;
-
-  in_msg->message_identification[0] = 0;
-  in_msg->message_identification[1] = 0;
-
-  in_msg->payload_size = 0;
-  in_msg->object_state = 0;
-  in_msg->model_revision = revision;
-  in_msg->response_state = 0x00;
-  in_msg->model_data_size = model_size;
-  in_msg->model_data = model_data;
-  in_msg->message_size = 0;
-  in_msg->message = NULL;
-
-  for(iter = model_subscription_registrants.begin(); iter != model_subscription_registrants.end(); iter++ ){
-    if( (*iter)->node != NULL ){ 
-      (*iter)->node->SendMessage(in_msg);
+  if(in_msg != NULL){
+    std::list<ASOS_registered_node *>::iterator iter;
+    
+    in_msg->message_type = 0x01; 
+    in_msg->wait_time_for_response = 0x00;
+    in_msg->registration_lifetime = 0x00;
+    in_msg->lifetime_overwrite_flag = 0x00;
+    
+    in_msg->message_identification[0] = 0;
+    in_msg->message_identification[1] = 0;
+    
+    in_msg->payload_size = 0;
+    in_msg->object_state = 0;
+    in_msg->model_revision = revision;
+    in_msg->response_state = 0x00;
+    in_msg->model_data_size = model_size;
+    in_msg->model_data = model_data;
+    in_msg->message_size = 0;
+    in_msg->message = NULL;
+    
+    for(iter = model_subscription_registrants.begin(); iter != model_subscription_registrants.end(); iter++ ){
+      if( (*iter)->node != NULL ){ 
+	(*iter)->node->SendMessage(in_msg);
+      }
     }
+  }else{
+    printf("ERROR: ASOS_Object::notifyModelPublish(): parameters are NULL\n");
+    return -1;
   }
 
 }
 
-int ASOS_Object::notifyPushedMessage(ASOS_message *in_msg){
-  std::list<ASOS_registered_node *>::iterator iter;
+int ASOS_Object::notifyModelPublish_one_node(ASOS_message *in_msg, ASOS_Node *in_node){
+  if(in_msg != NULL && in_node != NULL){
 
-  in_msg->message_type = 0x0d; 
-  in_msg->wait_time_for_response = 0x00;
-  in_msg->registration_lifetime = 0x00;
-  in_msg->lifetime_overwrite_flag = 0x00;
+    in_msg->message_type = 0x01; 
+    in_msg->wait_time_for_response = 0x00;
+    in_msg->registration_lifetime = 0x00;
+    in_msg->lifetime_overwrite_flag = 0x00;
+    
+    in_msg->message_identification[0] = 0;
+    in_msg->message_identification[1] = 0;
+    
+    in_msg->payload_size = 0;
+    in_msg->object_state = 0;
+    in_msg->model_revision = revision;
+    in_msg->response_state = 0x00;
+    in_msg->model_data_size = model_size;
+    in_msg->model_data = model_data;
+    in_msg->message_size = 0;
+    in_msg->message = NULL;
 
-  in_msg->message_identification[0] = 0;
-  in_msg->message_identification[1] = 0;
-
-  in_msg->payload_size = 0;
-  in_msg->object_state = 0;
-  in_msg->model_revision = revision;
-  in_msg->response_state = 0x00;
-  in_msg->model_data_size = 0;
-  in_msg->model_data = NULL;
-
-  for(iter = message_capture_registrants.begin(); iter != message_capture_registrants.end(); iter++ ){
-    if( (*iter)->node != NULL ){ 
-      (*iter)->node->SendMessage(in_msg);
-    }
+    in_node->SendMessage(in_msg);
+  }else{
+    printf("ERROR: ASOS_Object::notifyModelPublish_one_node(): parameters are NULL\n");
+    return -1;
   }
+}
+
+
+
+int ASOS_Object::notifyPushedMessage(ASOS_message *in_msg){
+  if(in_msg != NULL){
+    std::list<ASOS_registered_node *>::iterator iter;
+
+    in_msg->message_type = 0x0d; 
+    in_msg->wait_time_for_response = 0x00;
+    in_msg->registration_lifetime = 0x00;
+    in_msg->lifetime_overwrite_flag = 0x00;
+    
+    in_msg->message_identification[0] = 0;
+    in_msg->message_identification[1] = 0;
+    
+    in_msg->payload_size = 0;
+    in_msg->object_state = 0;
+    in_msg->model_revision = revision;
+    in_msg->response_state = 0x00;
+    in_msg->model_data_size = 0;
+    in_msg->model_data = NULL;
+    
+    for(iter = message_capture_registrants.begin(); iter != message_capture_registrants.end(); iter++ ){
+      if( (*iter)->node != NULL ){ 
+	(*iter)->node->SendMessage(in_msg);
+      }
+    }
+  }else{
+    printf("ERROR: ASOS_Object::notifyPushedMessage(): parameters are NULL\n");
+    return -1;
+  }
+
 }
 
 

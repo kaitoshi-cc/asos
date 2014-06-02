@@ -54,7 +54,7 @@ public:
   int notifyObjectHeartbeat(ASOS_message *in_msg);
   int notifyModelPublish(ASOS_message *in_msg);
   int notifyPushedMessage(ASOS_message *in_msg);
-
+  int notifyModelPublish_one_node(ASOS_message *in_msg, ASOS_Node *in_node);
   void CleanUpByNodeLeaving(ASOS_Node *in_node);
 
   // Model revision

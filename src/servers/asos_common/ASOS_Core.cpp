@@ -198,6 +198,10 @@ int ASOS_Core::AfterProcess_for_Object(ASOS_Object *in_object, ASOS_message *in_
     in_object->notifyPushedMessage(in_msg);
     break;
 
+  case 0x09:  // 0x09: "register model subscription command"
+    in_object->notifyModelPublish_one_node(in_msg, in_node);
+    break;
+
   default:
     break;
   }

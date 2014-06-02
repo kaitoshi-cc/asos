@@ -6,7 +6,7 @@ function log(level, msg){
   
 	document.getElementById("log").innerHTML += "<tt>" + timestamp + " [" + level + "] " + msg + "</tt><br>";
 }
-
+var short_log = true;
 
 function ASOS_message(){}
 
@@ -85,6 +85,12 @@ ASOS_message.prototype.object_state_string = function(){
 
 ASOS_message.prototype.Print = function(){
 	log("info", "[ASOS] Message TYPE.. : " + this.message_type_string());
+	
+	// ---------------------------
+	// *** for shorten log. ****
+	// ---------------------------
+	if(short_log) return;
+	
 	log("info", "[ASOS] Message ID.... : " 
 		+ ("0"+this.message_identification0.toString(16)).slice(-2)
 		+ ("0"+this.message_identification1.toString(16)).slice(-2));
@@ -389,13 +395,13 @@ ASOS_Object.prototype.set_field = function(field) { this.field = field; }
 
 ASOS_Object.prototype.push = function(message){
 	var json_message = JSON.stringify(message);
-	log("info", "MESSAGE(JSON): " + json_message);
+	if(!short_log) log("info", "MESSAGE(JSON): " + json_message);
 	this.field.asos.protocol.PushMessage(this.field.id, this.id, this.model_revision, json_message);
 }
 
 ASOS_Object.prototype.update = function(){
 	var json_object = JSON.stringify(this.model);
-	log("info", "MODEL(JSON): " + json_object);
+	if(!short_log) log("info", "MODEL(JSON): " + json_object);
 	this.field.asos.protocol.UpdateModel(this.field.id, this.id, this.model_revision,json_object);
 }
 
@@ -418,6 +424,13 @@ ASOS_Object.prototype.subscribe = function(){
 
 ASOS_Object.prototype.ProducerProcess = function(asos_msg){
 	switch(asos_msg.message_type){
+
+		case 0x01: //"model publish"
+			this.model_revision = asos_msg.model_revision;
+			this.model = JSON.parse(asos_msg.model_data);
+			this.onModelUpdated();
+		break;
+
 		case 0x84: //"update model response"
 			if( asos_msg.response_state == 0x00 || asos_msg.response_state == 0x80 || asos_msg.response_state == 0x81){
 				this.model_revision = asos_msg.model_revision;
@@ -435,7 +448,8 @@ ASOS_Object.prototype.ProducerProcess = function(asos_msg){
 		case 0x87: //"create object response"
 			if( asos_msg.response_state == 0x00 || asos_msg.response_state == 0x88){
 				this.model_revision = asos_msg.model_revision;
-				this.update();
+				if(asos_msg.response_state == 0x00) this.update();
+				this.subscribe();
 				this.pop(true);
 			}
 		break;
@@ -451,7 +465,7 @@ ASOS_Object.prototype.onModelUpdated = function(){
 		str += p + " = " + this.model[p] + " / ";
 	}
 
-	log("info", "onModelUpdated (rev:" + this.model_revision + ") : " + str);
+	if(!short_log) log("info", "onModelUpdated (rev:" + this.model_revision + ") : " + str);
 }
 
 ASOS_Object.prototype.onMessagePoped = function(target_revision, message){
@@ -460,7 +474,7 @@ ASOS_Object.prototype.onMessagePoped = function(target_revision, message){
 		str += p + " = " + message[p] + " / ";
 	}
 
-	log("info", "onMessagePoped (rev:" + target_revision + ") : " + str);
+	if(!short_log) log("info", "onMessagePoped (rev:" + target_revision + ") : " + str);
 }
 
 ASOS_Object.prototype.ConsumerProcess = function(asos_msg){
@@ -651,14 +665,15 @@ ASOS_Protocol.prototype.Process = function(message){
 	
 	if(asos_msg.get_message_category() == "responce_consumer" || asos_msg.get_message_category() == "responce_producer" ){
 		if(asos_msg.object_field_identification in this.sock.asos.object_fields ){
-			if(asos_msg.get_message_category() == "responce_producer"){
+			if(asos_msg.get_message_category() == "responce_producer" || asos_msg.message_type == 0x01 ){
 				if(asos_msg.object_identification in this.sock.asos.object_fields[asos_msg.object_field_identification].producer_objects ){
 					object = this.sock.asos.object_fields[asos_msg.object_field_identification].producer_objects[asos_msg.object_identification];
 					object.ProducerProcess(asos_msg);
 				}else{
 					log("error", "ASOS_Protocol.prototype.Process: There are no produced object (ID: " + asos_msg.object_identification + " in the Client.");
 				}
-			}else{
+			}
+			if(asos_msg.get_message_category() == "responce_consumer"){
 				if(asos_msg.object_identification in this.sock.asos.object_fields[asos_msg.object_field_identification].consumer_objects ){
 					object = this.sock.asos.object_fields[asos_msg.object_field_identification].consumer_objects[asos_msg.object_identification];
 					object.ConsumerProcess(asos_msg);
@@ -685,7 +700,7 @@ ASOS_Protocol.prototype.sock_onmessage_as_array_buffer = function(event){
 			break;
 		}
 	}
-	log("info", "MESSAGE_AS_ArrayBuffer: (" + array.length + ")" + str);
+	if(!short_log ) log("info", "MESSAGE_AS_ArrayBuffer: (" + array.length + ")" + str);
 
 	this.protocol.Process(array);
 }
@@ -711,8 +726,8 @@ ASOS_Clinet.prototype.sock_onclose = function(event){
 	log("info", "socket param: " + this.bufferedAmount);
 }
 ASOS_Clinet.prototype.sock_onmessage = function(event){
-	log("info", "socket receive with " + event_string(event));
-	log("info", "MESSAGE: " + event.data);
+	if(!short_log) log("info", "socket receive with " + event_string(event));
+	if(!short_log) log("info", "MESSAGE: " + event.data);
 
 	freader	= new FileReader();
 	freader.protocol = this.asos.protocol;
