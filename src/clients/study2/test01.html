@@ -1,0 +1,59 @@
+<html>
+<head>
+
+<script type="text/javascript">
+<!--
+
+var monitor_ans_presentation = {true: "yes", false: "no"};
+
+var obj1 = { ans: true };
+var obj1_message;
+
+function monitor_ans_set(boolvalue){
+	var element = document.getElementById("monitor_ans");
+	element.innerHTML = monitor_ans_presentation[boolvalue];
+}
+
+function obj1_onPublish(obj){
+	monitor_ans_set(obj.ans);
+}
+
+function obj1_update(){
+	obj1_onPublish(obj1);
+}
+
+function obj1_onPop(msg){
+	switch(msg.command){
+	case "set":
+		obj1[msg.property] = msg.value;
+		obj1_update();
+	}
+}
+
+function obj1_push_message(msg){
+	obj1_onPop(msg);
+}
+
+function control_ans_onclink(isClicked){
+	obj1_message = { command: "set" , property: "ans", value: isClicked};
+	obj1_push_message(obj1_message);
+}
+
+function main(){
+	monitor_ans_set(true);
+}
+window.onload = main;
+// -->
+</script>
+</head>
+
+<body>
+
+<div id="monitor_ans"></div>
+<hr>
+<form>
+ans<input type="checkbox" name="control_ans" value="ans" checked onclick="control_ans_onclink(this.checked)" />
+</form>
+
+</body>
+</html>

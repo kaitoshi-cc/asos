@@ -1,0 +1,78 @@
+<html>
+<head>
+<script type="text/javascript" src="asosc.js"></script>
+<script type="text/javascript">
+<!--
+
+var monitor_ans_presentation = {true: "yes", false: "no"};
+
+var obj1 = { ans: true };
+var obj1_message;
+
+function monitor_ans_set(boolvalue){
+	var element = document.getElementById("monitor_ans");
+	element.innerHTML = monitor_ans_presentation[boolvalue];
+}
+
+function obj1_ModelUpdated(){
+	monitor_ans_set(this.model["ans"]);
+}
+
+function obj1_onPop(revision, msg){
+	switch(msg["command"]){
+	case "set":
+		this.model[msg["property"]] = msg["value"];
+		this.update();
+	}
+}
+
+function control_ans_onclink(isClicked){
+	
+	obj1_message = { command: "set" , property: "ans", value: isClicked};
+	object2.push(obj1_message);
+}
+
+var object = new ASOS_Object();
+var object2 = new ASOS_Object();
+
+function main(){
+	setInterval("log_clear()", 10000);
+
+	monitor_ans_set(true);
+
+	var asos = new ASOS_Clinet();
+
+	var object_field = new ASOS_ObjectField();
+	object_field.set_id("_ame");
+	asos.add_object_field(object_field);
+
+	object.set_id("obj1");
+	object.set_model(obj1);
+	object_field.add_producer_object(object);
+
+	object2.set_id("obj1");
+	object_field.add_consumer_object(object2);
+
+	object2.onModelUpdated = obj1_ModelUpdated;
+	object.onMessagePoped = obj1_onPop;
+
+	asos.start("ws://172.16.0.3/chat");
+
+}
+window.onload = main;
+// -->
+</script>
+</head>
+
+<body>
+
+<div id="monitor_ans"></div>
+<hr>
+<form>
+ans<input type="checkbox" name="control_ans" value="ans" checked onclick="control_ans_onclink(this.checked)" />
+</form>
+
+<div id="log" hidden></div>
+
+</body>
+</html>
