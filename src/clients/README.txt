@@ -1,1 +1,3 @@
-This is a sample readme file.
+[dependency]
+bootstrap : Apache lisence
+jquery    : MIT lisence
