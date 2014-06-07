@@ -41,6 +41,26 @@ ASOS_Object::ASOS_Object(char *in_object_id, int object_id_length){
 }
 
 ASOS_Object::~ASOS_Object(){
+  std::list<ASOS_registered_node *>::iterator iter;
+  ASOS_registered_node *reg;
+  
+  for(iter = model_subscription_registrants.begin(); iter != model_subscription_registrants.end(); iter++ ){
+    reg = *iter; 
+    if(reg != NULL){ delete reg; }
+  }
+
+  for(iter = message_capture_registrants.begin(); iter != message_capture_registrants.end(); iter++ ){
+    reg = *iter; 
+    if(reg != NULL){ delete reg; }
+  }
+
+  for(iter = message_pop_requestors.begin(); iter != message_pop_requestors.end(); iter++ ){
+    reg = *iter; 
+    if(reg != NULL){ 
+      if(reg->res_msg != NULL){ delete reg->res_msg; }
+      delete reg; 
+    }
+  }
 }
 
 int ASOS_Object::onPingObject(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node){

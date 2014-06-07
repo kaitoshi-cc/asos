@@ -241,6 +241,7 @@ int ASOS_Core::onDeleteObject(ASOS_ObjectField *in_field, ASOS_message *in_msg, 
   object = in_field->FindObject((char *)in_msg->object_identification, in_msg->object_identification_length);
   if(object != NULL){
     in_field->RemoveObject(object);
+    delete object;
   }else{
     printf("Worning: ASOS_Core::onDeleteObject: Object not found\n");
     in_res_msg->response_state = 0x01;

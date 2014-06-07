@@ -12,8 +12,6 @@ ASOS_ObjectField::~ASOS_ObjectField(){
     printf("##### Object id = %s, p = %p\n", iter->first.c_str(), iter->second);
     delete iter->second;
   }
-  
-  
 }
 
 int ASOS_ObjectField::AddObject(ASOS_Object *in_object, ASOS_Node *in_node){

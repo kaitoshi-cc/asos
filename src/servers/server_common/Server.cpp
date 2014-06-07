@@ -155,6 +155,16 @@ EpollManager::~EpollManager(){
     close(epoll); 
     epoll = -1; 
   }
+
+  Connection *temp_conn;
+  Connection *next_conn;
+
+  for(temp_conn = connection_list; temp_conn!=NULL; temp_conn = next_conn){
+    next_conn = temp_conn->next;
+    temp_conn->Close();
+    delete temp_conn;
+    temp_conn = NULL;
+  }
 }
 
 int EpollManager::AddConnection(Connection *conn){
