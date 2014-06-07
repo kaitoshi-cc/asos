@@ -32,15 +32,6 @@ ASOS_message.prototype.message_type_string = function(){
   case 0x0a:  return "delete object command";
   case 0x8a:  return "delete object response";
 
-  case 0x02:  return "ping object command";
-  case 0x82:  return "ping object response";
-
-  case 0x00:  return "object heart beat";
-  case 0x08:  return "register object heartbeat command";
-  case 0x88:  return "register object heartbeat response";
-  case 0x0b:  return "cancel object heartbeat command";
-  case 0x8b:  return "cancel object heartbeat response";
-  
   case 0x01:  return "model publish";
   case 0x09:  return "register model subscription command";
   case 0x89:  return "register model subscription response";
@@ -80,9 +71,9 @@ ASOS_message.prototype.response_state_string = function(){
 
 ASOS_message.prototype.object_state_string = function(){
   switch(this.object_state){
-  case 0x00:  return "object not exist";
-  case 0x01:  return "object exists without connected producer";
-  case 0x02:  return "object exists with connected producer";
+  case 0x00:  return "object not acvite";
+  case 0x01:  return "object active";
+  case 0x02:  return "object busy";
   default:    return "(unknown)";
   }
 }
@@ -102,19 +93,14 @@ ASOS_message.prototype.Print = function(){
 	log("info", "[ASOS] Object ID..... : " + this.object_identification);
 
 	switch(this.message_type){
-	case 0x00: // "object heart beat";
-		log("info", "[ASOS] Object State.. : " + this.object_state_string());
-		break;
   	case 0x01: // "model publish";
+		log("info", "[ASOS] Object State.. : " + this.object_state_string());
 		log("info", "[ASOS] Model Revision : " + this.model_revision);
 		log("info", "[ASOS] Model Data.... : " + this.model_data );
 		break;
-	case 0x82: // "ping object response";
-		log("info", "[ASOS] Response State : " + this.response_state_string());
-		log("info", "[ASOS] Object State.. : " + this.object_state_string());
-		break;
     case 0x83: // "browse model response";
 		log("info", "[ASOS] Response State : " + this.response_state_string());
+		log("info", "[ASOS] Object State.. : " + this.object_state_string());
 		log("info", "[ASOS] Model Revision : " + this.model_revision);
 		log("info", "[ASOS] Model Data.... : " + this.model_data );
 		break;
@@ -134,16 +120,10 @@ ASOS_message.prototype.Print = function(){
 		log("info", "[ASOS] Response State : " + this.response_state_string());
 		log("info", "[ASOS] Model Revision : " + this.model_revision);
 		break;
-    case 0x88: // "register object heartbeat response";
-		log("info", "[ASOS] Response State : " + this.response_state_string());
-		break;
     case 0x89: // "register model subscription response";
 		log("info", "[ASOS] Response State : " + this.response_state_string());
 		break;
     case 0x8a: // "delete object response";
-		log("info", "[ASOS] Response State : " + this.response_state_string());
-		break;
-    case 0x8b: // "cancel object heartbeat response";
 		log("info", "[ASOS] Response State : " + this.response_state_string());
 		break;
     case 0x8c: // "cancel model subscription response";
@@ -174,16 +154,16 @@ ASOS_message.prototype.get_model_revision = function(c0,c1,c2,c3,c4,c5,c6,c7){
 
 ASOS_message.prototype.get_message_category = function(){
 	switch(this.message_type){
-		case 0x00: case 0x01: case 0x82: case 0x83: case 0x86: 
-		case 0x88: case 0x89: case 0x8b: case 0x8c: case 0x0d: case 0x8e: case 0x8f: 
+		           case 0x01:            case 0x83: case 0x86: 
+		           case 0x89:                       case 0x8c: case 0x0d: case 0x8e: case 0x8f: 
 		return "responce_consumer";
 		break;
 		
 		case 0x84: case 0x85: case 0x87: case 0x8a:
 		return "responce_producer";
 		break;
-		                      case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07: 
-		case 0x08: case 0x09: case 0x0a: case 0x0b: case 0x0c:            case 0x0e: case 0x0f: 
+		                                 case 0x03: case 0x04: case 0x05: case 0x06: case 0x07: 
+		           case 0x09: case 0x0a:            case 0x0c:            case 0x0e: case 0x0f: 
 		return "command";
 		break;
 		default:
@@ -219,10 +199,8 @@ ASOS_message.prototype.Parse = function(message){
 	_index = 10 + this.object_field_identification_length + this.object_identification_length;
 	
 	switch(this.message_type){
-	case 0x00: // "object heart beat";
-		this.object_state = message[_index];  _index++;
-		break;
   	case 0x01: // "model publish";
+		this.object_state = message[_index];  _index++;
 		this.model_revision = this.get_model_revision(message[_index+0], message[_index+1], message[_index+2], message[_index+3], 
 								   	 				  message[_index+4], message[_index+5], message[_index+6], message[_index+7] );
 		_index+=8;
@@ -231,12 +209,9 @@ ASOS_message.prototype.Parse = function(message){
 			this.model_data += ascii(message[_index]); _index++;
 		}
 		break;
-	case 0x82: // "ping object response";
-		this.response_state = message[_index];  _index++;
-		this.object_state = message[_index];  _index++;
-		break;
     case 0x83: // "browse model response";
 		this.response_state = message[_index];  _index++;
+		this.object_state = message[_index];  _index++;
 		this.model_revision = this.get_model_revision(message[_index+0], message[_index+1], message[_index+2], message[_index+3], 
 								   	 				  message[_index+4], message[_index+5], message[_index+6], message[_index+7] );
 		_index+=8;
@@ -269,16 +244,10 @@ ASOS_message.prototype.Parse = function(message){
 								   	 				  message[_index+4], message[_index+5], message[_index+6], message[_index+7] );
 		_index+=8;
 		break;
-    case 0x88: // "register object heartbeat response";
-		this.response_state = message[_index];  _index++;
-		break;
     case 0x89: // "register model subscription response";
 		this.response_state = message[_index];  _index++;
 		break;
     case 0x8a: // "delete object response";
-		this.response_state = message[_index];  _index++;
-		break;
-    case 0x8b: // "cancel object heartbeat response";
 		this.response_state = message[_index];  _index++;
 		break;
     case 0x8c: // "cancel model subscription response";
@@ -383,7 +352,7 @@ function StartSession(asos){
 		}
 		for( var coid in asos.object_fields[fid].consumer_objects){
 			log("info", "Consumed Object ID = " + coid);
-			asos.object_fields[fid].producer_objects[coid].subscribe();
+			asos.object_fields[fid].consumer_objects[coid].subscribe();
 		}
 	}
 }
@@ -483,20 +452,16 @@ ASOS_Object.prototype.onMessagePoped = function(target_revision, message){
 
 ASOS_Object.prototype.ConsumerProcess = function(asos_msg){
 	switch(asos_msg.message_type){
-		case 0x00: //"object heart beat"
-		break;
-		
 		case 0x01: //"model publish"
+			this.object_state = asos_msg.object_state;
 			this.model_revision = asos_msg.model_revision;
 			this.model = JSON.parse(asos_msg.model_data);
 			this.onModelUpdated();
 		break;
 		
-		case 0x82: //"ping object response"
-		break;
-		
 		case 0x83: //"browse model response"
 			if( asos_msg.response_state == 0x00 ){
+	   			this.object_state = asos_msg.object_state;
 				this.model_revision = asos_msg.model_revision;
 				this.model = JSON.parse(asos_msg.model_data);
 				this.onModelUpdated();
@@ -506,13 +471,7 @@ ASOS_Object.prototype.ConsumerProcess = function(asos_msg){
 		case 0x86: //"push message response"
 		break;
 		
-		case 0x88: //"register object heartbeat response"
-		break;
-		
 		case 0x89: //"register model subscription response"
-		break;
-		
-		case 0x8b: //"cancel object heartbeat response"
 		break;
 		
 		case 0x8c: //"cancel model subscription response"

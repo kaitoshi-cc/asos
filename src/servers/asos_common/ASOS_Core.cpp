@@ -113,20 +113,11 @@ int ASOS_Core::Process_for_ObjectField(ASOS_ObjectField *in_field, ASOS_message 
   if(in_field == NULL){printf("ASOS_Core::Process_for_ObjectField: [Error] field is NULL \n");return -1;}
 
   switch(in_msg->message_type){
-  case 0x02:  // 0x02: "ping object command"
-    onPingObject(in_field, in_msg, in_res_msg, in_node);
-    break;
   case 0x07:  // 0x07: "create object command"
     onCreateObject(in_field, in_msg, in_res_msg, in_node);
     break;
-  case 0x08:  // 0x08: "register object heartbeat command"
-    onRegisterObjectHeartbeat(in_field, in_msg, in_res_msg, in_node);
-    break;
   case 0x0a:  // 0x0a: "delete object command"
     onDeleteObject(in_field, in_msg, in_res_msg, in_node);
-    break;
-  case 0x0b:  // 0x0b: "cancel object heartbeat command"
-    onCancelObjectHeartbeat(in_field, in_msg, in_res_msg, in_node);
     break;
     
   default:
@@ -141,9 +132,6 @@ int ASOS_Core::AfterProcess_for_ObjectField(ASOS_ObjectField *in_field, ASOS_mes
 					    ASOS_message *in_res_msg, ASOS_Node *in_node){
   int ret=0; 
   if(in_field == NULL){printf("ASOS_Core::AfterProcess_for_ObjectField: [Error] field is NULL \n");return -1;}
-
-  //  **** [TODO] Add for object heartbeat  **** 
-
   return ret;
 }
 
@@ -151,6 +139,8 @@ int ASOS_Core::Process_for_Object(ASOS_Object *in_object, ASOS_message *in_msg, 
   int ret=0;
 
   if(in_object == NULL){printf("ASOS_Core::Process_for_Object: [Error] object is NULL \n");return -1;}
+
+  in_object->previous_object_state = in_object->object_state;
 
   switch(in_msg->message_type){
   case 0x03:  // 0x03: "browse model command"
@@ -206,6 +196,10 @@ int ASOS_Core::AfterProcess_for_Object(ASOS_Object *in_object, ASOS_message *in_
     break;
   }
 
+  if(in_msg->message_type != 0x04 && in_object->previous_object_state != in_object->object_state){
+    in_object->notifyModelPublish(in_msg);    
+  }
+
   return ret;
 }
 
@@ -219,6 +213,7 @@ int ASOS_Core::onCreateObject(ASOS_ObjectField *in_field, ASOS_message *in_msg, 
     object = new ASOS_Object((char *)in_msg->object_identification, in_msg->object_identification_length);
     if(object != NULL){
       in_field->AddObject(object, in_node);
+      object->field = in_field;
       in_res_msg->response_state = 0x00;
       in_res_msg->model_revision = object->revision;
     }else{
@@ -249,55 +244,6 @@ int ASOS_Core::onDeleteObject(ASOS_ObjectField *in_field, ASOS_message *in_msg, 
 
   return ret;
 }
-
-int ASOS_Core::onPingObject(ASOS_ObjectField *in_field, ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node){
-  int ret=0;
-  ASOS_Object *object;
-
-  //  **** [TODO] Change tareget from a object to the object field  **** 
-
-  object = in_field->FindObject((char *)in_msg->object_identification, in_msg->object_identification_length);
-  if(object != NULL){
-    object->onPingObject(in_msg, in_res_msg, in_node);
-  }else{
-    in_res_msg->response_state = 0x01;
-  }
-
-  return ret;
-}
-
-int ASOS_Core::onRegisterObjectHeartbeat(ASOS_ObjectField *in_field,ASOS_message *in_msg,ASOS_message *in_res_msg,ASOS_Node *in_node){
-  int ret=0;
-  ASOS_Object *object;
-
-  //  **** [TODO] Change tareget from a object to the object field  **** 
-
-  object = in_field->FindObject((char *)in_msg->object_identification, in_msg->object_identification_length);
-  if(object != NULL){
-    object->onRegisterObjectHeartbeat(in_msg, in_res_msg, in_node);
-  }else{
-    in_res_msg->response_state = 0x01;
-  }
-
-  return ret;
-}
-
-int ASOS_Core::onCancelObjectHeartbeat(ASOS_ObjectField *in_field,ASOS_message *in_msg,ASOS_message *in_res_msg,ASOS_Node *in_node){
-  int ret=0;
-  ASOS_Object *object;
-
-  //  **** [TODO] Change tareget from a object to the object field  **** 
-
-  object = in_field->FindObject((char *)in_msg->object_identification, in_msg->object_identification_length);
-  if(object != NULL){
-    object->onCancelObjectHeartbeat(in_msg, in_res_msg, in_node);
-  }else{
-    in_res_msg->response_state = 0x01;
-  }
-
-  return ret;
-}
-
 
 void ASOS_Core::CleanUpByNodeLeaving(ASOS_Node *in_node){
   int i;

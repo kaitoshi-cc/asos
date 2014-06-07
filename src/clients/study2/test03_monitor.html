@@ -1,0 +1,152 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>TEST</title>
+
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/bootstrap-theme.min.css" rel="stylesheet">
+    <script src="js/jquery-2.1.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    
+<script type="text/javascript" src="asosc.js"></script>
+<script type="text/javascript">
+<!--
+
+var monitor_object_state_presentation = {0x00: "not active", 0x01: "active", 0x02: "busy"};
+var monitor_ans_presentation = {true: "yes", false: "no"};
+var monitor_toggle_presentation = {true: "glyphicon glyphicon-star", false: "glyphicon glyphicon-star-empty"};
+
+var obj1;
+var obj1_message;
+
+function monitor_object_state(int_value){
+	var element = document.getElementById("monitor_object_state");
+	element.innerHTML = monitor_object_state_presentation[int_value];
+}
+
+function monitor_ans_set(boolvalue){
+	var element = document.getElementById("monitor_ans");
+	element.innerHTML = monitor_ans_presentation[boolvalue];
+}
+function monitor_toggle_set(boolvalue){
+	var element = document.getElementById("monitor_toggle");
+	element.className = monitor_toggle_presentation[boolvalue];
+}
+
+function monitor_progress_set(int_value){
+	var element = document.getElementById("monitor_progress");
+		log("debug2", "progress : " + element["aria-valuenow"]  + "   " + element["style"].width );
+	element["aria-valuenow"] = int_value;
+	element["style"].width= int_value +"%";
+		log("debug2", "progress : " + element["aria-valuenow"]  + "   " + element["style"].width );
+	
+}
+
+function obj1_ModelUpdated(){
+	monitor_object_state(this.object_state);
+	monitor_ans_set(this.model["ans"]);
+	monitor_toggle_set(this.model["toggle"]);
+	monitor_progress_set(this.model["progress"]);
+}
+
+function control_ans_onclink(isClicked){
+	obj1_message = { command: "set" , property: "ans", value: isClicked};
+	object2.push(obj1_message);
+}
+
+function control_toggle_onclink(isClicked){
+	obj1_message = { command: "pulse", property: "toggle"};
+	object2.push(obj1_message);
+}
+
+function control_progress_onclink(isClicked){
+	obj1_message = { command: "pulse", property: "progress"};
+	object2.push(obj1_message);
+}
+
+var object2 = new ASOS_Object();
+
+function main(){
+	setInterval("log_clear()", 10000);
+
+	var asos = new ASOS_Clinet();
+
+	var object_field = new ASOS_ObjectField();
+	object_field.set_id("_ame");
+	asos.add_object_field(object_field);
+
+	object2.set_id("obj1");
+	object2.set_model(obj1);
+	object_field.add_consumer_object(object2);
+
+	object2.onModelUpdated = obj1_ModelUpdated;
+
+	asos.start("ws://172.16.0.3/chat");
+
+}
+window.onload = main;
+// -->
+</script>
+</head>
+
+<body role="document">
+
+<div class="container theme-showcase" role="main">
+
+  <div class="page-header">
+  ans
+  </div>
+
+  <div class="row">
+    <div class="col-sm-4">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          monitor
+        </div>
+        <div class="panel-body">
+          <table class="table">
+            <tr><td><label>object state</label></td><td><span class="badge" id="monitor_object_state"></span></div></td></tr>
+            <tr><td><label>ans</label></td><td><span class="badge" id="monitor_ans"></span></div></td></tr>
+            <tr><td><label>toggle</label></td><td><span id="monitor_toggle"></span></div></td></tr>
+            <tr><td><label>progress</label></td><td><div class="progress"><div class="progress-bar progress-bar-success" role="progressbar" id="monitor_progress" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 20%"><span class="sr-only"></span></div></div></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          control
+        </div>
+        <div class="panel-body">
+          <form role="form">
+             <div class="checkbox"><label><input type="checkbox" name="control_ans" value="ans" checked onclick="control_ans_onclink(this.checked)" />ans</label></div>
+            <button type="button" class="btn btn-primary" name="control_toggle" onclick="control_toggle_onclink(this.checked)">toggle</button>
+            <button type="button" class="btn btn-success" name="control_progress" onclick="control_progress_onclink(this.checked)">progress</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="page-footer" role="contentinfo">
+  <hr>
+  <div class="container text-center">
+    <ul class="list-inline">
+      <li>Thanks : </li>
+      <li>Bootstrap <a href"http://getbootstrap.com">getbootstrap.com</a></li>
+      <li>GLYPHICONS <a href="http://glyphicons.com">GLYPHICONS.com</a></li>
+      <li>jQuery  <a href="http://jquery.com">jquery.com</a></li>
+    </ul>
+  </div>
+
+  <div id="log" hidden ></div>
+</footer>
+
+</body>
+</html>

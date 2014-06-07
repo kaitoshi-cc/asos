@@ -8,6 +8,7 @@
 
 class ASOS_Node;
 class ASOS_message;
+class ASOS_ObjectField;
 
 class ASOS_registered_node{
 public:
@@ -33,12 +34,10 @@ public:
   ASOS_Object(char *in_object_id, int object_id_length);
   ~ASOS_Object();
 
+  ASOS_ObjectField *field;
+
   int object_id_size;
   char object_id[257];
-  
-  int onPingObject(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
-  int onRegisterObjectHeartbeat(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
-  int onCancelObjectHeartbeat(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
   
   int onBrowseModel(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
   int onUpdateModel(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
@@ -51,7 +50,7 @@ public:
   int onRegisterMessageCapture(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
   int onCancelMessageCapture(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
 
-  int notifyObjectHeartbeat(ASOS_message *in_msg);
+  int notifyModelPublish();
   int notifyModelPublish(ASOS_message *in_msg);
   int notifyPushedMessage(ASOS_message *in_msg);
   int notifyModelPublish_one_node(ASOS_message *in_msg, ASOS_Node *in_node);
@@ -62,11 +61,15 @@ public:
 
   ASOS_ApplicationMessage temp_app_message;
 
+  // Object state
+  unsigned char object_state;
+  unsigned char previous_object_state;
+
 private:
-  std::list<ASOS_registered_node *> object_heartbeat_registrants;
   std::list<ASOS_registered_node *> model_subscription_registrants;
   std::list<ASOS_registered_node *> message_capture_registrants;
   std::list<ASOS_registered_node *> message_pop_requestors;
+
 
   // Model data
   int model_size;

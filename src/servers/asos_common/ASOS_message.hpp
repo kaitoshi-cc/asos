@@ -1,6 +1,8 @@
 #ifndef ASOS_MESSAGE_HPP
 #define ASOS_MESSAGE_HPP
 
+#include "ASOS_Protocolv1.hpp"
+
 class ASOS_message{
 public:
   ASOS_message();
@@ -48,7 +50,7 @@ public:
   const char *response_state_string();
   const char *object_state_string();
 
-  void print();
+  void print(ASOS_Protocolv1_info *pinfo);
   void copy(ASOS_message *src);
   void ModifyToResponse();
 

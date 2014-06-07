@@ -16,10 +16,7 @@ ASOS_message::~ASOS_message(){
 
 const char *ASOS_message::message_type_string(){
   switch(message_type){
-  case 0x00:  return "object heart beat";
   case 0x01:  return "model publish";
-  case 0x02:  return "ping object command";
-  case 0x82:  return "ping object response";
   case 0x03:  return "browse model command";
   case 0x83:  return "browse model response";
   case 0x04:  return "update model command";
@@ -30,14 +27,10 @@ const char *ASOS_message::message_type_string(){
   case 0x86:  return "push message response";
   case 0x07:  return "create object command";
   case 0x87:  return "create object response";
-  case 0x08:  return "register object heartbeat command";
-  case 0x88:  return "register object heartbeat response";
   case 0x09:  return "register model subscription command";
   case 0x89:  return "register model subscription response";
   case 0x0a:  return "delete object command";
   case 0x8a:  return "delete object response";
-  case 0x0b:  return "cancel object heartbeat command";
-  case 0x8b:  return "cancel object heartbeat response";
   case 0x0c:  return "cancel model subscription command";
   case 0x8c:  return "cancel model subscription response";
 
@@ -75,15 +68,14 @@ const char *ASOS_message::response_state_string(){
 
 const char *ASOS_message::object_state_string(){
   switch(object_state){
-  case 0x00:  return "object not exist";
-  case 0x01:  return "object exists without connected producer";
-  case 0x02:  return "object exists with connected producer";
+  case 0x00:  return "object not acvite";
+  case 0x01:  return "object active";
+  case 0x02:  return "object busy";
   default:    return "(unknown)";
   }
 }
 
-
-void ASOS_message::print(){
+void ASOS_message::print(ASOS_Protocolv1_info *pinfo){
   int i;
   printf("message type            : (0x%02x) %s\n", message_type, message_type_string() );
   printf("wait time for response  : %d [sec]\n"   , wait_time_for_response );
@@ -124,44 +116,35 @@ void ASOS_message::print(){
     printf("(none)\n");
   }
 
+  // -------------------------------------------------
+  // get protocol info
+  // -------------------------------------------------
+  if(pinfo == NULL) {printf("Error: asos message type is unknown\n"); return;}
+
   // ---------------------------------------------------
   // print payload 
+  // ---------------------------------------------------
 
-  if(message_type == 0x02 || message_type == 0x03 || message_type == 0x05
-     || message_type == 0x07 || message_type == 0x08 || message_type == 0x09
-     || message_type == 0x0a || message_type == 0x0b  || message_type == 0x0c 
-     || message_type == 0x0e || message_type == 0x0f ){
-    printf("  [none]\n"); return;
-  }
-
-  if(message_type == 0x82 || message_type == 0x83 || message_type == 0x84 || message_type == 0x85 || message_type == 0x86
-     || message_type == 0x87 || message_type == 0x88 || message_type == 0x89 
-     || message_type == 0x8a || message_type == 0x8b  || message_type == 0x8c 
-     || message_type == 0x8e || message_type == 0x8f  ){
+  if(pinfo->flag_response_state == 1){
     printf("  [response state]     (%02x) %s\n", response_state, response_state_string() ); 
   }
-
-  if(message_type == 0x00 || message_type == 0x82 ){
+  if(pinfo->flag_object_state == 1){
     printf("  [object state]       (%02x) %s\n", object_state, object_state_string() ); 
   }
-
-  if(message_type == 0x01 || message_type == 0x83 || message_type == 0x04 || message_type == 0x85 || message_type == 0x06
-     || message_type == 0x87 || message_type == 0x0d ){
+  if(pinfo->flag_model_revision == 1){
     printf("  [model revosion]     %lld\n", model_revision); 
   }
-  
-  if(message_type == 0x01 || message_type == 0x83 || message_type == 0x04 ){
+  if(pinfo->flag_model_data == 1){
     printf("  [model data (%d)]    ", model_data_size);
     for(i=0; i<model_data_size; i++) printf("%c", model_data[i]);
     printf("\n");
   }
-
-  if(message_type == 0x85 || message_type == 0x06 || message_type == 0x0d ){
+  if(pinfo->flag_message == 1){
     printf("  [message (%d)]       ", message_size);
     for(i=0; i<message_size; i++) printf("%c", message[i]);
     printf("\n");
   }
-
+ 
 }
 
 long long int ASOS_message::get_revision_from_net(const unsigned char *buff){

@@ -31,10 +31,6 @@ public:
   int onCreateObject(ASOS_ObjectField *in_field, ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
   int onDeleteObject(ASOS_ObjectField *in_field, ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
 
-  int onPingObject(ASOS_ObjectField *in_field, ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
-  int onRegisterObjectHeartbeat(ASOS_ObjectField *in_field, ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
-  int onCancelObjectHeartbeat(ASOS_ObjectField *in_field, ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
-
   void CleanUpByNodeLeaving(ASOS_Node *in_node);
 
 };

@@ -175,7 +175,6 @@ void ASOS_Node::SendMessage(ASOS_message *in_msg){
   // -------------------------------------------------
   // websock message creation
   // -------------------------------------------------
-
   websock_payload_size = 10 + in_msg->object_identification_length + in_msg->object_field_identification_length + in_msg->payload_size; 
   if(websock_payload_size < 126){
     websock_header_size = 2;

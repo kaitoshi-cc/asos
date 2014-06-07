@@ -27,13 +27,20 @@ ASOS_Object::ASOS_Object(char *in_object_id, int object_id_length){
   if(object_id_length < 256){
     strncpy(object_id, in_object_id, object_id_length);
     object_id[object_id_length] = '\0';
+    object_id_size = object_id_length;
   }else{
     strncpy(object_id, in_object_id, 256);
     object_id[256] = '\0';
     printf("Error: object id length too long\n");
+    object_id_size = 256;
   }
 
+  field = NULL;
+
   revision = 1;  // *** TODO: set revision based on current time (see design document) ***
+
+  object_state = 0x00;  // not active
+  model_size = 0;
 
   queue_head =0;
   queue_tail =0;
@@ -63,20 +70,8 @@ ASOS_Object::~ASOS_Object(){
   }
 }
 
-int ASOS_Object::onPingObject(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node){
-  in_res_msg->object_state = 0x01;
-  in_res_msg->response_state = 0x00;
-}
-
-int ASOS_Object::onRegisterObjectHeartbeat(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node){
-  in_res_msg->response_state = 0x00;
-}
-
-int ASOS_Object::onCancelObjectHeartbeat(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node){
-  in_res_msg->response_state = 0x00;
-}
-
 int ASOS_Object::onBrowseModel(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node){
+  in_res_msg->object_state = object_state;
   in_res_msg->model_revision = revision;
   in_res_msg->model_data_size = model_size;
   in_res_msg->model_data = model_data;
@@ -195,6 +190,7 @@ int ASOS_Object::onPushMessage(ASOS_message *in_msg, ASOS_message *in_res_msg, A
 	queue_tail = (queue_tail + 1) % ASOS_MAX_MESSAGE_QUEUE_SIZE;
 	if( queue_tail == queue_head ){
 	  if(message_queue[queue_tail] != NULL ) delete message_queue[queue_tail];	
+	  object_state = 0x02; // busy
 	}
       }
       
@@ -234,7 +230,7 @@ int ASOS_Object::onPopMessage(ASOS_message *in_msg, ASOS_message *in_res_msg, AS
   }else{
     // for long polling 
     in_res_msg->long_polling_flag = 1;
-    in_res_msg->response_state = 0x87;
+    in_res_msg->response_state = 0x00;
 
     int already_registered_flag = 0;
 
@@ -267,6 +263,14 @@ int ASOS_Object::onPopMessage(ASOS_message *in_msg, ASOS_message *in_res_msg, AS
 
       reg->res_msg = saved_res_msg;
       message_pop_requestors.push_back(reg);
+    }
+  }
+
+  if(in_res_msg->response_state == 0x00){
+    if( object_state == 0x00 ){   // from not active
+      object_state = 0x01;   // to active
+    }else if (object_state == 0x02 && queue_tail == queue_head){  // from busy
+      object_state = 0x01;   // to active
     }
   }
 
@@ -312,7 +316,24 @@ int ASOS_Object::onCancelMessageCapture(ASOS_message *in_msg, ASOS_message *in_r
   in_res_msg->response_state = 0x00;
 }
 
-int ASOS_Object::notifyObjectHeartbeat(ASOS_message *in_msg){
+int ASOS_Object::notifyModelPublish(){
+  ASOS_message msg;
+
+  msg.protocol_type = 0x01;
+
+  msg.object_field_identification_length = field->field_id_length;
+  msg.object_identification_length = object_id_size;
+
+  msg.object_field_identification = (unsigned char *)field->field_id;
+  msg.object_identification = (unsigned char *)object_id;
+
+  msg.payload_size = 0;
+  msg.payload = NULL;
+
+  msg.long_polling_flag = 0;
+
+
+  notifyModelPublish(&msg);
 }
 
 int ASOS_Object::notifyModelPublish(ASOS_message *in_msg){
@@ -328,7 +349,7 @@ int ASOS_Object::notifyModelPublish(ASOS_message *in_msg){
     in_msg->message_identification[1] = 0;
     
     in_msg->payload_size = 0;
-    in_msg->object_state = 0;
+    in_msg->object_state = object_state;
     in_msg->model_revision = revision;
     in_msg->response_state = 0x00;
     in_msg->model_data_size = model_size;
@@ -360,7 +381,7 @@ int ASOS_Object::notifyModelPublish_one_node(ASOS_message *in_msg, ASOS_Node *in
     in_msg->message_identification[1] = 0;
     
     in_msg->payload_size = 0;
-    in_msg->object_state = 0;
+    in_msg->object_state = object_state;
     in_msg->model_revision = revision;
     in_msg->response_state = 0x00;
     in_msg->model_data_size = model_size;
@@ -463,5 +484,13 @@ void ASOS_Object::CleanUpByNodeLeaving(ASOS_Node *in_node){
       }
     }
   }
+
+  if(message_pop_requestors.size() == 0 ){
+    if(object_state != 0x00){
+      object_state = 0x00; // not active
+      notifyModelPublish();
+    }
+  }
+
 }
 
