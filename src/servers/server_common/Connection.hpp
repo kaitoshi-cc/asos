@@ -19,7 +19,7 @@
 #include "Processer.hpp"
 
 #define BUFF_SIZE 4000
-#define CLOSE_TIME_SEC 10
+#define CLOSE_TIME_SEC 60
 
 class Connection{
 public:

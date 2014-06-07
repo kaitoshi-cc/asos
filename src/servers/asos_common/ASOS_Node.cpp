@@ -54,10 +54,23 @@ int ASOS_Node::ProcessMessage(const unsigned char *buff, int buff_size, int ws_o
     // -------------------------------------------------
     // parsing for headers
     // -------------------------------------------------
-    if(buff_size < 10){ printf("Worning: asos message too short\n"); return -1; }
+
+    if(buff_size < 2){ printf("Worning: asos message too short\n"); return -1; }
 
     msg.protocol_type           = buff[0];
-    if(msg.protocol_type != 0x01){ printf("ERROR: Protocol type invalid (%02x)\n", msg.protocol_type); return -1; }
+    if(msg.protocol_type != 0x01 && msg.protocol_type != 0x02){
+      printf("ERROR: Protocol type invalid (%02x)\n", msg.protocol_type); return -1; 
+    }
+    if(msg.protocol_type == 0x02){
+      printf("Info: received comtrol message\n"); 
+
+      if(buff_size > 6){ printf("Worning: wrong control message (too long)\n"); return -1; }
+      // **** TODO strict check for Ping/Pong ****
+
+      return 1; 
+    }
+
+    if(buff_size < 10){ printf("Worning: asos message too short\n"); return -1; }
 
     msg.message_type            = buff[2];
     msg.wait_time_for_response  = buff[3];

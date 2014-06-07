@@ -355,6 +355,9 @@ function StartSession(asos){
 			asos.object_fields[fid].consumer_objects[coid].subscribe();
 		}
 	}
+
+	asos.startPong();
+
 }
 
 // --------------------------------------------------------------------------
@@ -696,6 +699,20 @@ ASOS_Clinet.prototype.sock_onmessage = function(event){
 	freader.protocol = this.asos.protocol;
 	freader.onloadend = this.asos.protocol.sock_onmessage_as_array_buffer;
 	freader.readAsArrayBuffer(event.data);
+}
+
+
+ASOS_Clinet.prototype.sendPong = function(){
+	var original_array = [0x02, 0x00, 0x01, 0x00, 0x00, 0x00];
+	ary_u8 = new Uint8Array(original_array);
+	blob   = new Blob([ary_u8] , {type:"application/octet-stream"}); 
+	this.sock.send(blob);
+}
+
+ASOS_Clinet.prototype.startPong = function(){
+	this.sendPong();
+	var asos = this;
+	setTimeout( function(){ asos.startPong(); } , 50*1000);
 }
 
 ASOS_Clinet.prototype.add_object_field = function(object_field){
