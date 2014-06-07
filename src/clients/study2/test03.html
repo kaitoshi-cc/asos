@@ -17,7 +17,7 @@
 <!--
 
 var monitor_ans_presentation = {true: "yes", false: "no"};
-var monitor_toggle_presentation = {true: "on", false: "off"};
+var monitor_toggle_presentation = {true: "glyphicon glyphicon-star", false: "glyphicon glyphicon-star-empty"};
 
 var obj1 = { ans: true , toggle: true , progress: 20};
 var obj1_message;
@@ -28,7 +28,7 @@ function monitor_ans_set(boolvalue){
 }
 function monitor_toggle_set(boolvalue){
 	var element = document.getElementById("monitor_toggle");
-	element.innerHTML = monitor_toggle_presentation[boolvalue];
+	element.className = monitor_toggle_presentation[boolvalue];
 }
 
 function monitor_progress_set(int_value){
@@ -131,38 +131,51 @@ window.onload = main;
   ans
   </div>
 
-
-  <div class="col-sm-4">
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        monitor
+  <div class="row">
+    <div class="col-sm-4">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          monitor
+        </div>
+        <div class="panel-body">
+          <table class="table">
+            <tr><td><label>ans</label></td><td><span class="badge" id="monitor_ans"></span></div></td></tr>
+            <tr><td><label>toggle</label></td><td><span id="monitor_toggle"></span></div></td></tr>
+            <tr><td><label>progress</label></td><td><div class="progress"><div class="progress-bar progress-bar-success" role="progressbar" id="monitor_progress" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 20%"><span class="sr-only"></span></div></div></td></tr>
+          </table>
+        </div>
       </div>
-      <div class="panel-body">
-        <div>ans: <span id="monitor_ans"></span></div>
-        <div>toggle: <span id="monitor_toggle"></span></div>
-        <div class="progress"><div class="progress-bar progress-bar-success" role="progressbar" id="monitor_progress" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 20%"><span class="sr-only"></span></div></div>
-      </div>
 
-    </div>
-
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        control
-      </div>
-      <div class="panel-body">
-        <form role="form">
-          <div class="checkbox"><label><input type="checkbox" name="control_ans" value="ans" checked onclick="control_ans_onclink(this.checked)" />ans</label></div>
-          <button type="button" class="btn btn-primary" name="control_toggle" onclick="control_toggle_onclink(this.checked)">toggle</button>
-          <button type="button" class="btn btn-success" name="control_progress" onclick="control_progress_onclink(this.checked)">progress</button>
-        </form>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          control
+        </div>
+        <div class="panel-body">
+          <form role="form">
+             <div class="checkbox"><label><input type="checkbox" name="control_ans" value="ans" checked onclick="control_ans_onclink(this.checked)" />ans</label></div>
+            <button type="button" class="btn btn-primary" name="control_toggle" onclick="control_toggle_onclink(this.checked)">toggle</button>
+            <button type="button" class="btn btn-success" name="control_progress" onclick="control_progress_onclink(this.checked)">progress</button>
+          </form>
+        </div>
       </div>
     </div>
   </div>
 
-
-  <div id="log" hidden ></div>
 </div>
 
+<footer class="page-footer" role="contentinfo">
+  <hr>
+  <div class="container text-center">
+    <ul class="list-inline">
+      <li>Thanks : </li>
+      <li>Bootstrap <a href"http://getbootstrap.com">getbootstrap.com</a></li>
+      <li>GLYPHICONS <a href="http://glyphicons.com">GLYPHICONS.com</a></li>
+      <li>jQuery  <a href="http://jquery.com">jquery.com</a></li>
+    </ul>
+  </div>
+
+  <div id="log" hidden ></div>
+</footer>
 
 </body>
 </html>
