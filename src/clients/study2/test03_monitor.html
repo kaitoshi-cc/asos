@@ -46,11 +46,17 @@ function monitor_progress_set(int_value){
 	
 }
 
+function monitor_text_set(textvalue){
+	var element = document.getElementById("monitor_text");
+	element.innerHTML = decodeURIComponent(textvalue);
+}
+
 function obj1_ModelUpdated(){
 	monitor_object_state(this.object_state);
 	monitor_ans_set(this.model["ans"]);
 	monitor_toggle_set(this.model["toggle"]);
 	monitor_progress_set(this.model["progress"]);
+	monitor_text_set(this.model["text"]);
 }
 
 function control_ans_onclink(isClicked){
@@ -65,6 +71,11 @@ function control_toggle_onclink(isClicked){
 
 function control_progress_onclink(isClicked){
 	obj1_message = { command: "pulse", property: "progress"};
+	object2.push(obj1_message);
+}
+
+function control_ans_onkeydown(text_value){
+	obj1_message = { command: "set", property: "text", value: encodeURIComponent(text_value)};
 	object2.push(obj1_message);
 }
 
@@ -113,6 +124,7 @@ window.onload = main;
             <tr><td class="col-xs-3"><label>ans</label></td><td><span class="badge" id="monitor_ans"></span></div></td></tr>
             <tr><td class="col-xs-3"><label>toggle</label></td><td><span id="monitor_toggle"></span></div></td></tr>
             <tr><td class="col-xs-3"><label>progress</label></td><td><div class="progress"><div class="progress-bar progress-bar-success" role="progressbar" id="monitor_progress" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 20%"><span class="sr-only"></span></div></div></td></tr>
+            <tr><td class="col-xs-3"><label>text</label></td><td><span id="monitor_text"></span></div></td></tr>
           </table>
         </div>
       </div>
@@ -126,6 +138,7 @@ window.onload = main;
              <div class="checkbox"><label><input type="checkbox" name="control_ans" value="ans" checked onclick="control_ans_onclink(this.checked)" />ans</label></div>
             <button type="button" class="btn btn-primary" name="control_toggle" onclick="control_toggle_onclink(this.checked)">toggle</button>
             <button type="button" class="btn btn-success" name="control_progress" onclick="control_progress_onclink(this.checked)">progress</button>
+             <div class="checkbox"><label>text</label><input type="text" name="control_text" value="" onkeyup="control_ans_onkeydown(this.value)" /></div>
           </form>
         </div>
       </div>
