@@ -4,6 +4,7 @@
 #include "ProcesserWebsocket.hpp"
 
 #include "ASOS_Protocolv1.hpp"
+#include <string.h>
 
 ASOS_Node::ASOS_Node(){
 }
@@ -76,6 +77,7 @@ int ASOS_Node::ProcessMessage(const unsigned char *buff, int buff_size, int ws_o
     msg.wait_time_for_response  = buff[3];
     msg.registration_lifetime   = buff[4];
     msg.lifetime_overwrite_flag = ( buff[5] & 0x80 ) >> 7;
+    msg.private_flag            = ( buff[5] & 0x40 ) >> 6;
 
     msg.message_identification[0] = buff[6];
     msg.message_identification[1] = buff[7];
@@ -101,11 +103,13 @@ int ASOS_Node::ProcessMessage(const unsigned char *buff, int buff_size, int ws_o
     // -------------------------------------------------
     // buffered message size check
     // -------------------------------------------------
-    if(pinfo->flag_response_state == 1) size += 1;
-    if(pinfo->flag_object_state   == 1) size += 1;
-    if(pinfo->flag_model_revision == 1) size += 8;
+    if(pinfo->flag_response_state    == 1) size += 1;
+    if(pinfo->flag_object_state      == 1) size += 1;
+    if(pinfo->flag_key               == 1) size += 1;
+    if(pinfo->flag_keys_and_node_ids == 1) size += 2;
+    if(pinfo->flag_model_revision    == 1) size += 8;
 
-    if(pinfo->flag_model_data == 1 || pinfo->flag_message == 1){
+    if(pinfo->flag_model_data == 1 || pinfo->flag_message == 1 || pinfo->flag_key == 1 || pinfo->flag_keys_and_node_ids == 1){
       if(msg.payload_size < size) { printf("Worning: asos payload size is wrong [%s]\n", msg.message_type_string()); return -1;}
     }else{
       if(msg.payload_size != size) { printf("Worning: asos payload size is wrong [%s]\n", msg.message_type_string()); return -1;}
@@ -121,6 +125,29 @@ int ASOS_Node::ProcessMessage(const unsigned char *buff, int buff_size, int ws_o
     if(pinfo->flag_object_state == 1){
       msg.object_state = msg.payload[index];  index++;
     }
+
+    if(pinfo->flag_key == 1){
+      msg.key_count = msg.payload[index] & 0x01;  index++;
+      if(msg.key_count == 1){
+	// ### TODO: strict check !!! ###//
+	memcpy(msg.key_list[0], (const void *)(msg.payload+index), 16);  index+=16;
+      }
+    }
+
+    if(pinfo->flag_keys_and_node_ids == 1){
+      msg.key_count     = msg.payload[index];  index++;
+      msg.node_id_count = msg.payload[index];  index++;
+      int i;
+      for(i=0; i<msg.key_count; i++){
+	// ### TODO: strict check !!! ###//
+	memcpy(msg.key_list[i], (const void *)(msg.payload+index), 16);  index+=16;
+      }
+      for(i=0; i<msg.node_id_count; i++){
+	// ### TODO: strict check !!! ###//
+	memcpy(msg.node_id_list[i], (const void *)(msg.payload+index), 16);  index+=16;
+      }
+    }
+
     if(pinfo->flag_model_revision == 1){
       msg.model_revision  = msg.get_revision_from_net(msg.payload + index);
       index+=8;
@@ -181,6 +208,14 @@ void ASOS_Node::SendMessage(ASOS_message *in_msg){
   in_msg->payload_size = 0;
   if(pinfo->flag_response_state == 1) in_msg->payload_size += 1;
   if(pinfo->flag_object_state   == 1) in_msg->payload_size += 1;
+  if(pinfo->flag_key            == 1){
+    in_msg->payload_size += 1;
+    if(in_msg->key_count & 0x01 == 0x01)    in_msg->payload_size += 16;
+  }
+  if(pinfo->flag_keys_and_node_ids == 1){
+    in_msg->payload_size += 2 + in_msg->key_count * 16 + in_msg->node_id_count * 16;
+  }
+
   if(pinfo->flag_model_revision == 1) in_msg->payload_size += 8;
   if(pinfo->flag_model_data     == 1) in_msg->payload_size += in_msg->model_data_size;
   if(pinfo->flag_message        == 1) in_msg->payload_size += in_msg->message_size;
@@ -231,7 +266,11 @@ void ASOS_Node::SendMessage(ASOS_message *in_msg){
   message->data[_index] = in_msg->message_type;  _index++;
   message->data[_index] = in_msg->wait_time_for_response;  _index++;
   message->data[_index] = in_msg->registration_lifetime;  _index++;
-  message->data[_index] = ( in_msg->lifetime_overwrite_flag == 1 )?0x80:0x00;  _index++;
+
+  message->data[_index] = ( in_msg->lifetime_overwrite_flag == 0x01 )?0x80:0x00;
+  message->data[_index] |= ( in_msg->private_flag == 0x01 )?0x40:0x00;
+  _index++;
+
   message->data[_index] = in_msg->message_identification[0];  _index++;
   message->data[_index] = in_msg->message_identification[1];  _index++;
   message->data[_index] = in_msg->object_field_identification_length;  _index++;
@@ -253,6 +292,26 @@ void ASOS_Node::SendMessage(ASOS_message *in_msg){
   if(pinfo->flag_object_state == 1){
     message->data[_index] = in_msg->object_state;  _index++;
   }
+
+  if(pinfo->flag_key == 1){
+    message->data[_index] = in_msg->key_count & 0x01;  _index++;
+    if(in_msg->key_count & 0x01 == 0x01){
+      memcpy(message->data + _index, in_msg->key_list[0], 16);  _index+=16;
+    }
+  }
+
+  if(pinfo->flag_keys_and_node_ids == 1){
+    message->data[_index] = in_msg->key_count;  _index++;
+    message->data[_index] = in_msg->node_id_count;  _index++;
+    int i;
+    for(i=0; i< in_msg->key_count; i++){
+      memcpy(message->data + _index, in_msg->key_list[i], 16);  _index+=16;
+    }
+    for(i=0; i< in_msg->node_id_count; i++){
+      memcpy(message->data + _index, in_msg->node_id_list[i], 16);  _index+=16;
+    }
+  }
+
   if(pinfo->flag_model_revision == 1){
     in_msg->set_revision_to_net(message->data+_index, in_msg->model_revision);  _index+=8;
   }

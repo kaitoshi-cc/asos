@@ -6,6 +6,9 @@
 #define ASOS_MAX_MODEL_DATA_SIZE 20000
 #define ASOS_MAX_MESSAGE_QUEUE_SIZE 64
 
+#define ASOS_OBJECT_KEY_MAX_COUNT 32
+#define ASOS_OBJECT_NODE_ID_MAX_COUNT 32
+
 class ASOS_Node;
 class ASOS_message;
 class ASOS_ObjectField;
@@ -31,13 +34,20 @@ public:
 
 class ASOS_Object{
 public:
-  ASOS_Object(char *in_object_id, int object_id_length);
+  ASOS_Object(char *in_object_id, int object_id_length, unsigned char in_is_private);
   ~ASOS_Object();
 
   ASOS_ObjectField *field;
 
   int object_id_size;
   char object_id[257];
+
+  unsigned char is_private;
+
+  unsigned char key_count;
+  unsigned char node_id_count;
+  unsigned char key_list[ASOS_OBJECT_KEY_MAX_COUNT][16];
+  unsigned char node_id_list[ASOS_OBJECT_NODE_ID_MAX_COUNT][16];
   
   int onBrowseModel(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);
   int onUpdateModel(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node);

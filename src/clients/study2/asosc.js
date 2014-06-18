@@ -95,12 +95,16 @@ ASOS_message.prototype.Print = function(){
 	switch(this.message_type){
   	case 0x01: // "model publish";
 		log("info", "[ASOS] Object State.. : " + this.object_state_string());
+		log("info", "[ASOS] Key count      : " + this.key_count);
+		log("info", "[ASOS] Node-ID count  : " + this.node_id_count);
 		log("info", "[ASOS] Model Revision : " + this.model_revision);
 		log("info", "[ASOS] Model Data.... : " + this.model_data );
 		break;
     case 0x83: // "browse model response";
 		log("info", "[ASOS] Response State : " + this.response_state_string());
 		log("info", "[ASOS] Object State.. : " + this.object_state_string());
+		log("info", "[ASOS] Key count      : " + this.key_count);
+		log("info", "[ASOS] Node-ID count  : " + this.node_id_count);
 		log("info", "[ASOS] Model Revision : " + this.model_revision);
 		log("info", "[ASOS] Model Data.... : " + this.model_data );
 		break;
@@ -179,7 +183,8 @@ ASOS_message.prototype.Parse = function(message){
 	this.message_type                       = message[2];
 	this.wait_time_for_response             = message[3];
 	this.registration_lifetime              = message[4];
-	this.lifetime_overwrite_flag            = (message[5] & 0x80 == 0x08)?1:0;
+	this.lifetime_overwrite_flag            = (message[5] & 0x80 == 0x80)?1:0;
+	this.private_flag                       = (message[5] & 0x40 == 0x40)?1:0;
   	
 	this.message_identification0            = message[6];
 	this.message_identification1            = message[7];
@@ -201,6 +206,16 @@ ASOS_message.prototype.Parse = function(message){
 	switch(this.message_type){
   	case 0x01: // "model publish";
 		this.object_state = message[_index];  _index++;
+		
+		this.key_count     = message[_index];  _index++;
+		this.node_id_count = message[_index];  _index++;
+		for(i=0; i<this.key_count; i++){
+			_index+=16;
+		}
+		for(i=0; i<this.node_id_count; i++){
+			_index+=16;
+		}
+		
 		this.model_revision = this.get_model_revision(message[_index+0], message[_index+1], message[_index+2], message[_index+3], 
 								   	 				  message[_index+4], message[_index+5], message[_index+6], message[_index+7] );
 		_index+=8;
@@ -212,6 +227,16 @@ ASOS_message.prototype.Parse = function(message){
     case 0x83: // "browse model response";
 		this.response_state = message[_index];  _index++;
 		this.object_state = message[_index];  _index++;
+
+		this.key_count     = message[_index];  _index++;
+		this.node_id_count = message[_index];  _index++;
+		for(i=0; i<this.key_count; i++){
+			_index+=16;
+		}
+		for(i=0; i<this.node_id_count; i++){
+			_index+=16;
+		}
+
 		this.model_revision = this.get_model_revision(message[_index+0], message[_index+1], message[_index+2], message[_index+3], 
 								   	 				  message[_index+4], message[_index+5], message[_index+6], message[_index+7] );
 		_index+=8;
@@ -530,13 +555,15 @@ ASOS_Protocol.prototype.RegisterModelSubscription = function(field_id, object_id
 	for(i=0; i<field_id.length; i++)	original_array.push(atoc(field_id[i]));
 	for(i=0; i<object_id.length; i++)	original_array.push(atoc(object_id[i]));
 	
+	original_array.push(0x00);  // Key flag
+	
 	ary_u8 = new Uint8Array(original_array);
 	blob   = new Blob([ary_u8] , {type:"application/octet-stream"}); 
 	this.sock.send(blob);
 }
 
 ASOS_Protocol.prototype.CreateObject = function(field_id, object_id){
-	var original_array = [0x01,0x00, 0x07,0x05,0x00,0x80];
+	var original_array = [0x01,0x00, 0x07,0x05,0x00,0x00];
 	var mgsid = this.get_next_message_id();
 	original_array.push(Math.floor(mgsid/0x0100));
 	original_array.push(Math.floor(mgsid%0x0100));
@@ -578,6 +605,8 @@ ASOS_Protocol.prototype.PushMessage = function(field_id, object_id, revision, me
 	for(i=0; i<field_id.length; i++)	original_array.push(atoc(field_id[i]));
 	for(i=0; i<object_id.length; i++)	original_array.push(atoc(object_id[i]));
 	
+	original_array.push(0x00);  // Key flag
+	
 	original_array.push( ( revision & 0xFF00000000000000) / 0x0100000000000000 );
 	original_array.push( ( revision & 0x00FF000000000000) / 0x0001000000000000 );
 	original_array.push( ( revision & 0x0000FF0000000000) / 0x0000010000000000 );
@@ -604,6 +633,10 @@ ASOS_Protocol.prototype.UpdateModel = function(field_id, object_id, revision, mo
 	original_array.push(object_id.length);
 	for(i=0; i<field_id.length; i++)	original_array.push(atoc(field_id[i]));
 	for(i=0; i<object_id.length; i++)	original_array.push(atoc(object_id[i]));
+	
+	original_array.push(0x00);  // Keys
+	original_array.push(0x00);  // Node-IDs
+	
 	
 	original_array.push( ( revision & 0xFF00000000000000) / 0x0100000000000000 );
 	original_array.push( ( revision & 0x00FF000000000000) / 0x0001000000000000 );

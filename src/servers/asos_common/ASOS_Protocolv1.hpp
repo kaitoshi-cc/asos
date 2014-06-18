@@ -11,6 +11,8 @@ public:
 		       signed char in_flag_response_state, 
 		       signed char in_flag_model_data, 
 		       signed char in_flag_message,
+		       signed char in_flag_key,
+		       signed char in_flag_keys_and_node_ids,		       
 		       unsigned char in_target,
 		       signed char in_flag_accepted_by_basic_server
 		       );
@@ -22,6 +24,9 @@ public:
   signed char flag_response_state;  //              0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8a, 0x8b, 0x8c / 0x8e 0x8f
   signed char flag_model_data;      // (      0x01,       0x83, 0x04            )
   signed char flag_message;         //                                0x85, 0x06                                     / 0x0d
+
+  signed char flag_key;               // 0x03, 0x06, 0x09, 0x0c
+  signed char flag_keys_and_node_ids; // 0x01, 0x83, 0x04
 
   // target info
   unsigned char target;   // 0x00: field, 0x01: object

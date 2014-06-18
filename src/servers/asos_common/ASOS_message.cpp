@@ -9,6 +9,8 @@ ASOS_message::ASOS_message(){
   model_data = NULL;
   message = NULL;
   long_polling_flag = 0;
+  key_count = 0;
+  node_id_count = 0;
 }
 
 ASOS_message::~ASOS_message(){
@@ -81,6 +83,7 @@ void ASOS_message::print(ASOS_Protocolv1_info *pinfo){
   printf("wait time for response  : %d [sec]\n"   , wait_time_for_response );
   printf("registration lifetime   : %d [min]\n"   , registration_lifetime );
   printf("lifetime overwrite flag : %s\n"         , (lifetime_overwrite_flag==0x1)?"true":"false" );
+  printf("private flag            : %s\n"         , (private_flag==0x1)?"true":"false" );
   printf("message identification  : %02x%02x\n"   , message_identification[0], message_identification[1] );
   printf("object field id length  : %d\n"         , object_field_identification_length );
   printf("object id length        : %d\n"         , object_identification_length );
@@ -131,6 +134,33 @@ void ASOS_message::print(ASOS_Protocolv1_info *pinfo){
   if(pinfo->flag_object_state == 1){
     printf("  [object state]       (%02x) %s\n", object_state, object_state_string() ); 
   }
+
+  if(pinfo->flag_key == 1){
+    printf("  [key count]          %d\n", key_count ); 
+    int i, jj;
+    for(i=0; i<key_count; i++){
+      printf("  [key (%d)]           ", i);
+      for(jj=0; jj<16; jj++) printf("%02x", key_list[i][jj]);
+      printf("\n");
+    }  
+  }
+
+  if(pinfo->flag_keys_and_node_ids == 1){
+    printf("  [key count]          %d\n", key_count ); 
+    printf("  [node id count]      %d\n", node_id_count ); 
+    int i, jj;
+    for(i=0; i<key_count; i++){
+      printf("  [key (%d)]           ", i);
+      for(jj=0; jj<16; jj++) printf("%02x", key_list[i][jj]);
+      printf("\n");
+    }
+    for(i=0; i<node_id_count; i++){
+      printf("  [node id (%d)]       ", i);
+      for(jj=0; jj<16; jj++) printf("%02x", node_id_list[i][jj]);
+      printf("\n");
+    }
+  }
+
   if(pinfo->flag_model_revision == 1){
     printf("  [model revosion]     %lld\n", model_revision); 
   }
@@ -182,10 +212,13 @@ void ASOS_message::ModifyToResponse(){
   wait_time_for_response = 0x00;
   registration_lifetime = 0x00;
   lifetime_overwrite_flag = 0x00;
+  private_flag = 0x00;
   payload_size = 0;
   object_state = 0;
   model_revision = 0;
   response_state = 0x00;
+  key_count = 0;
+  node_id_count = 0;
   model_data_size = 0x00;
   model_data = NULL;
   message_size = 0;

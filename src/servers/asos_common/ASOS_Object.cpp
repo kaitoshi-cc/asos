@@ -23,7 +23,7 @@ ASOS_ApplicationMessage::~ASOS_ApplicationMessage(){
   }
 }
 
-ASOS_Object::ASOS_Object(char *in_object_id, int object_id_length){
+ASOS_Object::ASOS_Object(char *in_object_id, int object_id_length, unsigned char in_is_private){
   if(object_id_length < 256){
     strncpy(object_id, in_object_id, object_id_length);
     object_id[object_id_length] = '\0';
@@ -45,6 +45,11 @@ ASOS_Object::ASOS_Object(char *in_object_id, int object_id_length){
   queue_head =0;
   queue_tail =0;
   temp_app_message.message = NULL;
+
+  is_private = in_is_private;
+
+  key_count = 0;
+  node_id_count = 0;
 }
 
 ASOS_Object::~ASOS_Object(){
@@ -71,14 +76,25 @@ ASOS_Object::~ASOS_Object(){
 }
 
 int ASOS_Object::onBrowseModel(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node){
+  int i;
   in_res_msg->object_state = object_state;
   in_res_msg->model_revision = revision;
   in_res_msg->model_data_size = model_size;
   in_res_msg->model_data = model_data;
   in_res_msg->response_state = 0x00;
+  in_res_msg->key_count = key_count;
+  in_res_msg->node_id_count = node_id_count;
+  for(i=0; i<key_count; i++){
+    memcpy(in_res_msg->key_list[i], key_list[i], 16);
+  }
+  for(i=0; i<node_id_count; i++){
+    memcpy(in_res_msg->node_id_list[i], node_id_list[i], 16);
+  }
 }
 
 int ASOS_Object::onUpdateModel(ASOS_message *in_msg, ASOS_message *in_res_msg, ASOS_Node *in_node){
+  int i;
+
   if(in_msg->model_revision == -1 || in_msg->model_revision == revision){
     revision++;
     if(in_msg->model_data_size < ASOS_MAX_MODEL_DATA_SIZE){
@@ -87,6 +103,16 @@ int ASOS_Object::onUpdateModel(ASOS_message *in_msg, ASOS_message *in_res_msg, A
       model_size = ASOS_MAX_MODEL_DATA_SIZE;
     }
     memcpy(model_data, in_msg->model_data, model_size);
+
+    key_count = in_msg->key_count;
+    node_id_count = in_msg->node_id_count;
+    for(i=0; i<key_count; i++){
+      memcpy(key_list[i], in_msg->key_list[i], 16);
+    }
+    for(i=0; i<node_id_count; i++){
+      memcpy(node_id_list[i], in_msg->node_id_list[i], 16);
+    }
+
     in_res_msg->model_revision = revision;
     in_res_msg->response_state = 0x00;
   }else{

@@ -3,6 +3,9 @@
 
 #include "ASOS_Protocolv1.hpp"
 
+#define ASOS_OBJECT_KEY_MAX_COUNT 32
+#define ASOS_OBJECT_NODE_ID_MAX_COUNT 32
+
 class ASOS_message{
 public:
   ASOS_message();
@@ -17,6 +20,7 @@ public:
   unsigned char wait_time_for_response;
   unsigned char registration_lifetime;
   unsigned char lifetime_overwrite_flag;
+  unsigned char private_flag;
   
   unsigned char message_identification[2];
 
@@ -33,6 +37,11 @@ public:
   unsigned char object_state;
   signed long long int model_revision;
   unsigned char response_state;
+
+  unsigned char key_count;
+  unsigned char node_id_count;
+  unsigned char key_list[ASOS_OBJECT_KEY_MAX_COUNT][16];
+  unsigned char node_id_list[ASOS_OBJECT_NODE_ID_MAX_COUNT][16];
 
   int model_data_size;             
   const unsigned char* model_data; 

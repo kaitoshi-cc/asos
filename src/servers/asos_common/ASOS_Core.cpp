@@ -210,7 +210,7 @@ int ASOS_Core::onCreateObject(ASOS_ObjectField *in_field, ASOS_message *in_msg, 
   object = in_field->FindObject((char *)in_msg->object_identification, in_msg->object_identification_length);
 
   if(object == NULL){
-    object = new ASOS_Object((char *)in_msg->object_identification, in_msg->object_identification_length);
+    object = new ASOS_Object((char *)in_msg->object_identification, in_msg->object_identification_length, in_msg->private_flag);
     if(object != NULL){
       in_field->AddObject(object, in_node);
       object->field = in_field;
