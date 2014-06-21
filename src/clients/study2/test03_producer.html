@@ -118,12 +118,12 @@ function main(){
 	asos.add_object_field(object_field);
 
 	object.set_id("obj1");
-	object.set_field_extension("0123456789abcdef");
+	object.set_field_extension("0123456789abcdef0123456789abcdef");
 	object.set_model(obj1);
 	object_field.add_producer_object(object);
 
 	object2.set_id("obj1");
-	object2.set_field_extension("0123456789abcdef");
+	object2.set_field_extension("0123456789abcdef0123456789abcdef");
 	object_field.add_consumer_object(object2);
 
 	object2.onModelUpdated = obj1_ModelUpdated;

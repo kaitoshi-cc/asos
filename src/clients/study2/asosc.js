@@ -199,16 +199,16 @@ ASOS_message.prototype.Parse = function(message){
 	}
 
 	this.object_field_extension = "";
-	for(i=0;i<16;i++){
+	for(i=0;i<32;i++){
 		this.object_field_extension += ascii(message[10+this.object_field_identification_length+i]);
 	}
 
 	this.object_identification = "";
 	for(i=0;i<this.object_identification_length;i++){
-		this.object_identification += ascii(message[26+this.object_field_identification_length+i]);
+		this.object_identification += ascii(message[42+this.object_field_identification_length+i]);
 	}
 	
-	_index = 26 + this.object_field_identification_length + this.object_identification_length;
+	_index = 42 + this.object_field_identification_length + this.object_identification_length;
 	
 	switch(this.message_type){
   	case 0x01: // "model publish";
@@ -561,7 +561,7 @@ ASOS_Protocol.prototype.RegisterModelSubscription = function(field_id, field_ext
 	original_array.push(field_id.length);
 	original_array.push(object_id.length);
 	for(i=0; i<field_id.length; i++)	original_array.push(atoc(field_id[i]));
-	for(i=0; i<16; i++)	                original_array.push(atoc(field_ext[i]));
+	for(i=0; i<32; i++)	                original_array.push(atoc(field_ext[i]));
 	for(i=0; i<object_id.length; i++)	original_array.push(atoc(object_id[i]));
 	
 	original_array.push(0x00);  // Key flag
@@ -579,7 +579,7 @@ ASOS_Protocol.prototype.CreateObject = function(field_id, field_ext, object_id){
 	original_array.push(field_id.length);
 	original_array.push(object_id.length);
 	for(i=0; i<field_id.length; i++)	original_array.push(atoc(field_id[i]));
-	for(i=0; i<16; i++)	                original_array.push(atoc(field_ext[i]));
+	for(i=0; i<32; i++)	                original_array.push(atoc(field_ext[i]));
 	for(i=0; i<object_id.length; i++)	original_array.push(atoc(object_id[i]));
 	
 	ary_u8 = new Uint8Array(original_array);
@@ -599,7 +599,7 @@ ASOS_Protocol.prototype.PopMessage = function(field_id, field_ext, object_id, ti
 	original_array.push(field_id.length);
 	original_array.push(object_id.length);
 	for(i=0; i<field_id.length; i++)	original_array.push(atoc(field_id[i]));
-	for(i=0; i<16; i++)	                original_array.push(atoc(field_ext[i]));
+	for(i=0; i<32; i++)	                original_array.push(atoc(field_ext[i]));
 	for(i=0; i<object_id.length; i++)	original_array.push(atoc(object_id[i]));
 	ary_u8 = new Uint8Array(original_array);
 	blob   = new Blob([ary_u8] , {type:"application/octet-stream"}); 
@@ -614,7 +614,7 @@ ASOS_Protocol.prototype.PushMessage = function(field_id, field_ext, object_id, r
 	original_array.push(field_id.length);
 	original_array.push(object_id.length);
 	for(i=0; i<field_id.length; i++)	original_array.push(atoc(field_id[i]));
-	for(i=0; i<16; i++)	                original_array.push(atoc(field_ext[i]));
+	for(i=0; i<32; i++)	                original_array.push(atoc(field_ext[i]));
 	for(i=0; i<object_id.length; i++)	original_array.push(atoc(object_id[i]));
 	
 	original_array.push(0x00);  // Key flag
@@ -644,7 +644,7 @@ ASOS_Protocol.prototype.UpdateModel = function(field_id, field_ext, object_id, r
 	original_array.push(field_id.length);
 	original_array.push(object_id.length);
 	for(i=0; i<field_id.length; i++)	original_array.push(atoc(field_id[i]));
-	for(i=0; i<16; i++)	                original_array.push(atoc(field_ext[i]));
+	for(i=0; i<32; i++)	                original_array.push(atoc(field_ext[i]));
 	for(i=0; i<object_id.length; i++)	original_array.push(atoc(object_id[i]));
 	
 	original_array.push(0x00);  // Keys

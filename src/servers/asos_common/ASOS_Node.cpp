@@ -71,7 +71,7 @@ int ASOS_Node::ProcessMessage(const unsigned char *buff, int buff_size, int ws_o
       return 1; 
     }
 
-    if(buff_size < 26){ printf("Worning: asos message too short\n"); return -1; }
+    if(buff_size < 42){ printf("Worning: asos message too short\n"); return -1; }
 
     msg.message_type            = buff[2];
     msg.wait_time_for_response  = buff[3];
@@ -85,13 +85,13 @@ int ASOS_Node::ProcessMessage(const unsigned char *buff, int buff_size, int ws_o
     msg.object_field_identification_length = buff[8];
     msg.object_identification_length       = buff[9];
 
-    msg.payload_size = buff_size - 26 - msg.object_field_identification_length - msg.object_identification_length;
+    msg.payload_size = buff_size - 42 - msg.object_field_identification_length - msg.object_identification_length;
     
     if(msg.payload_size < 0){ printf("Worning: asos payload size is wrong (minus value)\n"); return -1; }
 
     msg.object_field_identification = buff + 10;
     msg.object_field_extension      = msg.object_field_identification + msg.object_field_identification_length;
-    msg.object_identification       = msg.object_field_extension + 16;
+    msg.object_identification       = msg.object_field_extension + 32;
     msg.payload                     = msg.object_identification + msg.object_identification_length;
 
     // -------------------------------------------------
@@ -223,7 +223,7 @@ void ASOS_Node::SendMessage(ASOS_message *in_msg){
   // -------------------------------------------------
   // websock message creation
   // -------------------------------------------------
-  websock_payload_size = 26 + in_msg->object_identification_length + in_msg->object_field_identification_length + in_msg->payload_size; 
+  websock_payload_size = 42 + in_msg->object_identification_length + in_msg->object_field_identification_length + in_msg->payload_size; 
   if(websock_payload_size < 126){
     websock_header_size = 2;
   }else if(websock_payload_size < 65536){
@@ -279,8 +279,8 @@ void ASOS_Node::SendMessage(ASOS_message *in_msg){
   memcpy(message->data+_index, in_msg->object_field_identification, in_msg->object_field_identification_length);
   _index+= in_msg->object_field_identification_length;
 
-  memcpy(message->data+_index, in_msg->object_field_extension, 16);
-  _index+= 16;
+  memcpy(message->data+_index, in_msg->object_field_extension, 32);
+  _index+= 32;
 
   memcpy(message->data+_index, in_msg->object_identification, in_msg->object_identification_length);
   _index+= in_msg->object_identification_length;
