@@ -40,6 +40,7 @@ public:
   ASOS_ObjectField *field;
 
   int object_id_size;
+  char object_field_extension[16];
   char object_id[257];
 
   unsigned char is_private;

@@ -90,6 +90,7 @@ ASOS_message.prototype.Print = function(){
 		+ ("0"+this.message_identification0.toString(16)).slice(-2)
 		+ ("0"+this.message_identification1.toString(16)).slice(-2));
 	log("info", "[ASOS] ObjectField ID : " + this.object_field_identification);
+	log("info", "[ASOS] ObjectField Ext: " + this.object_field_extension);
 	log("info", "[ASOS] Object ID..... : " + this.object_identification);
 
 	switch(this.message_type){
@@ -196,12 +197,18 @@ ASOS_message.prototype.Parse = function(message){
 	for(i=0;i<this.object_field_identification_length;i++){
 		this.object_field_identification += ascii(message[10+i]);
 	}
+
+	this.object_field_extension = "";
+	for(i=0;i<16;i++){
+		this.object_field_extension += ascii(message[10+this.object_field_identification_length+i]);
+	}
+
 	this.object_identification = "";
 	for(i=0;i<this.object_identification_length;i++){
-		this.object_identification += ascii(message[10+this.object_field_identification_length+i]);
+		this.object_identification += ascii(message[26+this.object_field_identification_length+i]);
 	}
 	
-	_index = 10 + this.object_field_identification_length + this.object_identification_length;
+	_index = 26 + this.object_field_identification_length + this.object_identification_length;
 	
 	switch(this.message_type){
   	case 0x01: // "model publish";
@@ -373,7 +380,7 @@ function StartSession(asos){
 		log("info", "Object Field ID = " + fid);
 		for( var poid in asos.object_fields[fid].producer_objects){
 			log("info", "Produced Object ID = " + poid);
-			asos.protocol.CreateObject(fid, asos.object_fields[fid].producer_objects[poid].id);
+			asos.protocol.CreateObject(fid, asos.object_fields[fid].producer_objects[poid].field_extension, asos.object_fields[fid].producer_objects[poid].id);
 		}
 		for( var coid in asos.object_fields[fid].consumer_objects){
 			log("info", "Consumed Object ID = " + coid);
@@ -390,20 +397,21 @@ function ASOS_Object(){
 	this.pop_message_id = 0;
 }
 // --------------------------------------------------------------------------
-ASOS_Object.prototype.set_id    = function(id)    { this.id = id; }
-ASOS_Object.prototype.set_model = function(model) { this.model = model; }
-ASOS_Object.prototype.set_field = function(field) { this.field = field; }
+ASOS_Object.prototype.set_field_extension = function(field_extension) { this.field_extension = field_extension; }
+ASOS_Object.prototype.set_id              = function(id)              { this.id = id; }
+ASOS_Object.prototype.set_model           = function(model)           { this.model = model; }
+ASOS_Object.prototype.set_field           = function(field)           { this.field = field; }
 
 ASOS_Object.prototype.push = function(message){
 	var json_message = JSON.stringify(message);
 	if(!short_log) log("info", "MESSAGE(JSON): " + json_message);
-	this.field.asos.protocol.PushMessage(this.field.id, this.id, this.model_revision, json_message);
+	this.field.asos.protocol.PushMessage(this.field.id, this.field_extension, this.id, this.model_revision, json_message);
 }
 
 ASOS_Object.prototype.update = function(){
 	var json_object = JSON.stringify(this.model);
 	if(!short_log) log("info", "MODEL(JSON): " + json_object);
-	this.field.asos.protocol.UpdateModel(this.field.id, this.id, this.model_revision,json_object);
+	this.field.asos.protocol.UpdateModel(this.field.id, this.field_extension, this.id, this.model_revision,json_object);
 }
 
 ASOS_Object.prototype.pop = function(continue_flag){
@@ -414,13 +422,13 @@ ASOS_Object.prototype.pop = function(continue_flag){
 		// TODO : Reserve pop_message_id in this.field.asos.protocol in order to prevent re-use this message id for the other purpose.
 	}
 	
-	this.field.asos.protocol.PopMessage(this.field.id, this.id, timeout, this.pop_message_id);
+	this.field.asos.protocol.PopMessage(this.field.id, this.field_extension, this.id, timeout, this.pop_message_id);
 	var object = this;
 	if(continue_flag == true) setTimeout( function(){ object.pop(true); } , timeout*1000);
 }
 
 ASOS_Object.prototype.subscribe = function(){
-	this.field.asos.protocol.RegisterModelSubscription(this.field.id, this.id);
+	this.field.asos.protocol.RegisterModelSubscription(this.field.id, this.field_extension, this.id);
 }
 
 ASOS_Object.prototype.ProducerProcess = function(asos_msg){
@@ -545,7 +553,7 @@ ASOS_Protocol.prototype.get_next_message_id = function(){
 	return this.message_id;
 }
 
-ASOS_Protocol.prototype.RegisterModelSubscription = function(field_id, object_id){
+ASOS_Protocol.prototype.RegisterModelSubscription = function(field_id, field_ext, object_id){
 	var original_array = [0x01,0x00, 0x09,0x00,0x3c,0x00];
 	var mgsid = this.get_next_message_id();
 	original_array.push(Math.floor(mgsid/0x0100));
@@ -553,6 +561,7 @@ ASOS_Protocol.prototype.RegisterModelSubscription = function(field_id, object_id
 	original_array.push(field_id.length);
 	original_array.push(object_id.length);
 	for(i=0; i<field_id.length; i++)	original_array.push(atoc(field_id[i]));
+	for(i=0; i<16; i++)	                original_array.push(atoc(field_ext[i]));
 	for(i=0; i<object_id.length; i++)	original_array.push(atoc(object_id[i]));
 	
 	original_array.push(0x00);  // Key flag
@@ -562,7 +571,7 @@ ASOS_Protocol.prototype.RegisterModelSubscription = function(field_id, object_id
 	this.sock.send(blob);
 }
 
-ASOS_Protocol.prototype.CreateObject = function(field_id, object_id){
+ASOS_Protocol.prototype.CreateObject = function(field_id, field_ext, object_id){
 	var original_array = [0x01,0x00, 0x07,0x05,0x00,0x00];
 	var mgsid = this.get_next_message_id();
 	original_array.push(Math.floor(mgsid/0x0100));
@@ -570,6 +579,7 @@ ASOS_Protocol.prototype.CreateObject = function(field_id, object_id){
 	original_array.push(field_id.length);
 	original_array.push(object_id.length);
 	for(i=0; i<field_id.length; i++)	original_array.push(atoc(field_id[i]));
+	for(i=0; i<16; i++)	                original_array.push(atoc(field_ext[i]));
 	for(i=0; i<object_id.length; i++)	original_array.push(atoc(object_id[i]));
 	
 	ary_u8 = new Uint8Array(original_array);
@@ -577,7 +587,7 @@ ASOS_Protocol.prototype.CreateObject = function(field_id, object_id){
 	this.sock.send(blob);
 }
 
-ASOS_Protocol.prototype.PopMessage = function(field_id, object_id, timeout, message_id){
+ASOS_Protocol.prototype.PopMessage = function(field_id, field_ext, object_id, timeout, message_id){
 	var original_array = [0x01,0x00, 0x05];
 	if(timeout > 0xFF) timeout = 0xFF;
 	original_array.push(timeout);
@@ -589,13 +599,14 @@ ASOS_Protocol.prototype.PopMessage = function(field_id, object_id, timeout, mess
 	original_array.push(field_id.length);
 	original_array.push(object_id.length);
 	for(i=0; i<field_id.length; i++)	original_array.push(atoc(field_id[i]));
+	for(i=0; i<16; i++)	                original_array.push(atoc(field_ext[i]));
 	for(i=0; i<object_id.length; i++)	original_array.push(atoc(object_id[i]));
 	ary_u8 = new Uint8Array(original_array);
 	blob   = new Blob([ary_u8] , {type:"application/octet-stream"}); 
 	this.sock.send(blob);
 }
 
-ASOS_Protocol.prototype.PushMessage = function(field_id, object_id, revision, message){
+ASOS_Protocol.prototype.PushMessage = function(field_id, field_ext, object_id, revision, message){
 	var original_array = [0x01,0x00, 0x06,0x05,0x00,0x00];
 	var mgsid = this.get_next_message_id();
 	original_array.push(Math.floor(mgsid/0x0100));
@@ -603,6 +614,7 @@ ASOS_Protocol.prototype.PushMessage = function(field_id, object_id, revision, me
 	original_array.push(field_id.length);
 	original_array.push(object_id.length);
 	for(i=0; i<field_id.length; i++)	original_array.push(atoc(field_id[i]));
+	for(i=0; i<16; i++)	                original_array.push(atoc(field_ext[i]));
 	for(i=0; i<object_id.length; i++)	original_array.push(atoc(object_id[i]));
 	
 	original_array.push(0x00);  // Key flag
@@ -624,7 +636,7 @@ ASOS_Protocol.prototype.PushMessage = function(field_id, object_id, revision, me
 
 }
 
-ASOS_Protocol.prototype.UpdateModel = function(field_id, object_id, revision, model_data){
+ASOS_Protocol.prototype.UpdateModel = function(field_id, field_ext, object_id, revision, model_data){
 	var original_array = [0x01,0x00, 0x04,0x05,0x00,0x00];
 	var mgsid = this.get_next_message_id();
 	original_array.push(Math.floor(mgsid/0x0100));
@@ -632,6 +644,7 @@ ASOS_Protocol.prototype.UpdateModel = function(field_id, object_id, revision, mo
 	original_array.push(field_id.length);
 	original_array.push(object_id.length);
 	for(i=0; i<field_id.length; i++)	original_array.push(atoc(field_id[i]));
+	for(i=0; i<16; i++)	                original_array.push(atoc(field_ext[i]));
 	for(i=0; i<object_id.length; i++)	original_array.push(atoc(object_id[i]));
 	
 	original_array.push(0x00);  // Keys

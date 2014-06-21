@@ -28,6 +28,7 @@ public:
   unsigned char object_identification_length;
 
   const unsigned char *object_field_identification;
+  const unsigned char *object_field_extension;
   const unsigned char *object_identification;
 
   int payload_size;

@@ -99,6 +99,16 @@ void ASOS_message::print(ASOS_Protocolv1_info *pinfo){
     printf("(none)\n");
   }
 
+  printf("object field extension  : ");
+  if(object_field_extension != NULL){
+    for(i=0; i<16; i++){
+      printf("%02x", object_field_extension[i]);
+    }
+    printf("\n");
+  }else{
+    printf("(none)\n");
+  }
+
   printf("object id               : ");
   if(object_identification != NULL && object_identification_length > 0){
     for(i=0; i<object_identification_length; i++){
