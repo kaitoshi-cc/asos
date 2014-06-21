@@ -23,7 +23,11 @@ ASOS_ApplicationMessage::~ASOS_ApplicationMessage(){
   }
 }
 
-ASOS_Object::ASOS_Object(char *in_object_id, int object_id_length, unsigned char in_is_private){
+ASOS_Object::ASOS_Object(char *in_field_extention, char *in_object_id, int object_id_length, unsigned char in_is_private){
+
+  strncpy(object_field_extension, in_field_extention, 32);
+  object_field_extension[32] = '\0';
+
   if(object_id_length < 256){
     strncpy(object_id, in_object_id, object_id_length);
     object_id[object_id_length] = '\0';
@@ -189,6 +193,7 @@ int ASOS_Object::onPushMessage(ASOS_message *in_msg, ASOS_message *in_res_msg, A
 	      app_msg->message = NULL;
 	      delete app_msg;
 
+	      reg->res_msg->object_field_extension = in_res_msg->object_field_extension;
 	      reg->res_msg->object_field_identification = in_res_msg->object_field_identification;
 	      reg->res_msg->object_identification = in_res_msg->object_identification; 
 
@@ -282,6 +287,7 @@ int ASOS_Object::onPopMessage(ASOS_message *in_msg, ASOS_message *in_res_msg, AS
       ASOS_message *saved_res_msg = new ASOS_message();
       saved_res_msg->copy(in_res_msg);
       saved_res_msg->object_field_identification = NULL;
+      saved_res_msg->object_field_extension = NULL; 
       saved_res_msg->object_identification = NULL; 
       saved_res_msg->payload    = NULL;
       saved_res_msg->model_data = NULL;
@@ -351,7 +357,8 @@ int ASOS_Object::notifyModelPublish(){
   msg.object_identification_length = object_id_size;
 
   msg.object_field_identification = (unsigned char *)field->field_id;
-  msg.object_identification = (unsigned char *)object_id;
+  msg.object_field_extension = (unsigned char *)object_field_extension;
+  msg.object_identification  = (unsigned char *)object_id;
 
   msg.payload_size = 0;
   msg.payload = NULL;
@@ -370,6 +377,7 @@ int ASOS_Object::notifyModelPublish(ASOS_message *in_msg){
     in_msg->wait_time_for_response = 0x00;
     in_msg->registration_lifetime = 0x00;
     in_msg->lifetime_overwrite_flag = 0x00;
+    in_msg->private_flag = 0x00;
     
     in_msg->message_identification[0] = 0;
     in_msg->message_identification[1] = 0;

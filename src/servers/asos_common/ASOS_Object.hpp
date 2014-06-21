@@ -34,13 +34,13 @@ public:
 
 class ASOS_Object{
 public:
-  ASOS_Object(char *in_object_id, int object_id_length, unsigned char in_is_private);
+  ASOS_Object(char *in_field_extention, char *in_object_id, int object_id_length, unsigned char in_is_private);
   ~ASOS_Object();
 
   ASOS_ObjectField *field;
 
   int object_id_size;
-  char object_field_extension[16];
+  char object_field_extension[33];
   char object_id[257];
 
   unsigned char is_private;

@@ -19,7 +19,7 @@ public:
   
   int AddObject(ASOS_Object *in_object, ASOS_Node *in_node);
   int RemoveObject(ASOS_Object *in_object);
-  ASOS_Object *FindObject(char *object_id, int object_id_length);
+  ASOS_Object *FindObject(char *in_field_extention, char *object_id, int object_id_length);
   
   void CleanUpByNodeLeaving(ASOS_Node *in_node);
 

@@ -54,7 +54,7 @@ int ASOS_Core::Process(ASOS_message *in_msg, ASOS_Node *in_node, ASOS_Protocolv1
       Process_for_ObjectField(&(fields[index]), in_msg, &res_msg, in_node);
       break;
     case ASOSP_OBJECT: 
-      object = fields[index].FindObject((char *)in_msg->object_identification, in_msg->object_identification_length);
+      object = fields[index].FindObject((char *)in_msg->object_field_extension, (char *)in_msg->object_identification, in_msg->object_identification_length);
       if(object != NULL){
 	Process_for_Object(object, in_msg, &res_msg, in_node);
       }else{
@@ -207,10 +207,10 @@ int ASOS_Core::onCreateObject(ASOS_ObjectField *in_field, ASOS_message *in_msg, 
   int ret=0;
   ASOS_Object *object;
 
-  object = in_field->FindObject((char *)in_msg->object_identification, in_msg->object_identification_length);
+  object = in_field->FindObject((char *)in_msg->object_field_extension, (char *)in_msg->object_identification, in_msg->object_identification_length);
 
   if(object == NULL){
-    object = new ASOS_Object((char *)in_msg->object_identification, in_msg->object_identification_length, in_msg->private_flag);
+    object = new ASOS_Object((char *)in_msg->object_field_extension, (char *)in_msg->object_identification, in_msg->object_identification_length, in_msg->private_flag);
     if(object != NULL){
       in_field->AddObject(object, in_node);
       object->field = in_field;
@@ -233,7 +233,7 @@ int ASOS_Core::onDeleteObject(ASOS_ObjectField *in_field, ASOS_message *in_msg, 
   int ret=0;
   ASOS_Object *object;
 
-  object = in_field->FindObject((char *)in_msg->object_identification, in_msg->object_identification_length);
+  object = in_field->FindObject((char *)in_msg->object_field_extension, (char *)in_msg->object_identification, in_msg->object_identification_length);
   if(object != NULL){
     in_field->RemoveObject(object);
     delete object;
