@@ -55,17 +55,54 @@ void HTTP_processer::Process(int sock, unsigned char *buff, int index, int data_
       
       int v;
       int c=0;
+      int c_n=0;
+      int c_v=0;
+      arg_num = 0; // 0: base url, 1:arg1, 2:arg2 ...
+      int sub_stage =0; // 0: arg name, 1:arg value
       for(v = 0; v < line_size; v++){ if(line[v] == ' '){ v++; break; } }
       for(; v < line_size; v++){ if(line[v] != ' '){ break; } }
       for(; v < line_size; v++){ 
 	if(line[v] == ' '){ url[c] = '\0'; break; } 
-	url[c] = line[v];
-	c++;
-	if(c > MAX_URL_SIZE){
-	  is_error = 1;
-	  url[0] = '\0';
-	  v = line_size;
-	  break;
+	if(arg_num == 0 && line[v] == '?'){url[c] = '\0'; arg_num = 1; sub_stage=0; c_n=0; c_v=0;}
+	if(arg_num >  0 && sub_stage==0 && line[v] == '='){ url_args[arg_num-1].arg_name[c_n] = '\0'; sub_stage=1;}
+	if(arg_num >  0 && line[v] == '&'){
+	  url_args[arg_num-1].arg_name[c_n] = '\0'; 
+	  url_args[arg_num-1].arg_name[c_v] = '\0'; 
+	  arg_num++;
+	  sub_stage=0;
+	  c_n=0; c_v=0;
+	  if(arg_num >= MAX_URL_ARG_NUM){
+	    is_error = 1; url[0] = '\0'; v = line_size; break;
+	  }
+	}
+
+	if(arg_num == 0){
+	  url[c] = line[v];
+	  c++;
+	  if(c > MAX_URL_SIZE){
+	    is_error = 1;
+	    url[0] = '\0';
+	    v = line_size;
+	    break;
+	  }
+	}else if(sub_stage == 0){
+	  url_args[arg_num-1].arg_name[c_n] = line[v];
+	  c_n++;
+	  if(c_n > MAX_URL_ARG_NAME_SIZE){
+	    is_error = 1;
+	    url[0] = '\0';
+	    v = line_size;
+	    break;
+	  }
+	}else{
+	  url_args[arg_num-1].arg_value[c_v] = line[v];
+	  c_v++;
+	  if(c_v > MAX_URL_ARG_VALUE_SIZE){
+	    is_error = 1;
+	    url[0] = '\0';
+	    v = line_size;
+	    break;
+	  }	  
 	}
       }
       for(; v < line_size; v++){ if(line[v] != ' '){ break; } }
@@ -135,9 +172,18 @@ void HTTP_processer::Process(int sock, unsigned char *buff, int index, int data_
       msg->disconnect = 0;
       msg->next = NULL;
 
-      if(is_error == 0 && ( strcasecmp( url, "/") == 0 || strcasecmp( url, "/chat") == 0) ){
+      if(is_error == 0 && ( strcasecmp( url, "/") == 0 || strcasecmp( url, "/chat") == 0 ) ){
 
 	if(websock_key_size > 0){
+	  // check id and key
+	  int a;
+	  for(a == 0; a<arg_num; a++){
+
+	    // TODO: Check id and key
+	    
+	  }
+
+	  // respose message
 	  msg->data = (unsigned char *)sample_response_websock;
 	  msg->size = strlen((char *)msg->data) -1;
 	  msg->disconnect = 0;
