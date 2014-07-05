@@ -49,23 +49,30 @@ int ASOS_Core::Process(ASOS_message *in_msg, ASOS_Node *in_node, ASOS_Protocolv1
   printf("ASOS_Core::Process Field ID = %d\n", index);
 
   if(index >= 0 && MAX_OBJECT_FIELD_SIZE > index){
-    switch(pinfo->target){
-    case ASOSP_FIELD: 
-      Process_for_ObjectField(&(fields[index]), in_msg, &res_msg, in_node);
-      break;
-    case ASOSP_OBJECT: 
-      object = fields[index].FindObject((char *)in_msg->object_field_extension, (char *)in_msg->object_identification, in_msg->object_identification_length);
-      if(object != NULL){
-	Process_for_Object(object, in_msg, &res_msg, in_node);
-      }else{
-	res_msg.response_state = 0x01;
-      }
-      break;
-    default:
-      printf("ASOS_Core::Process [ERROR] wrong taget\n");
-      ret = -1;
-      break;
-    }    
+
+    if(pinfo->flag_permit_owner_only == 1 && in_msg->is_own != 1) {
+      printf("Error: This command is only permitted to a owner.\n");
+      res_msg.response_state = 0x03;
+    }else{
+      switch(pinfo->target){
+      case ASOSP_FIELD: 
+	Process_for_ObjectField(&(fields[index]), in_msg, &res_msg, in_node);
+	break;
+      case ASOSP_OBJECT: 
+	object = fields[index].FindObject((char *)in_msg->object_field_extension, (char *)in_msg->object_identification, 
+					  in_msg->object_identification_length);
+	if(object != NULL){
+	  Process_for_Object(object, in_msg, &res_msg, in_node);
+	}else{
+	  res_msg.response_state = 0x01;
+	}
+	break;
+      default:
+	printf("ASOS_Core::Process [ERROR] wrong taget\n");
+	ret = -1;
+	break;
+      }    
+    }
   }else{
     res_msg.response_state = 0x01;
   }

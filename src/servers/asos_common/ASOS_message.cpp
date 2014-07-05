@@ -11,6 +11,7 @@ ASOS_message::ASOS_message(){
   long_polling_flag = 0;
   key_count = 0;
   node_id_count = 0;
+  is_own = 0;
 }
 
 ASOS_message::~ASOS_message(){

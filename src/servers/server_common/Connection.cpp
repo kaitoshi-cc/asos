@@ -27,6 +27,9 @@ Connection::Connection(int in_sock, int in_epoll){
   time_close_grace = CLOSE_TIME_SEC;
 
   next = NULL;
+
+  id="";
+  key="";
 }
 
 void Connection::Close(){

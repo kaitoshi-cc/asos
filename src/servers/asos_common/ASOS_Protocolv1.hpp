@@ -13,8 +13,9 @@ public:
 		       signed char in_flag_message,
 		       signed char in_flag_key,
 		       signed char in_flag_keys_and_node_ids,		       
-		       unsigned char in_target,
-		       signed char in_flag_accepted_by_basic_server
+		       signed char in_target,
+		       signed char in_flag_accepted_by_basic_server,
+		       signed char flag_permit_owner_only
 		       );
   ~ASOS_Protocolv1_info();
   
@@ -29,10 +30,13 @@ public:
   signed char flag_keys_and_node_ids; // 0x01, 0x83, 0x04
 
   // target info
-  unsigned char target;   // 0x00: field, 0x01: object
+  signed char target;   // 0x00: field, 0x01: object
 
   // server type info
-  unsigned char flag_accepted_by_basic_server;  // 0x00: Drop, 0x01:Accept
+  signed char flag_accepted_by_basic_server;  // 0x00: Drop, 0x01:Accept
+
+  // target info
+  signed char flag_permit_owner_only;   // 0x00: faise, 0x01: true
 
 };
 

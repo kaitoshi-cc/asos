@@ -94,6 +94,12 @@ int ASOS_Node::ProcessMessage(const unsigned char *buff, int buff_size, int ws_o
     msg.object_identification       = msg.object_field_extension + 32;
     msg.payload                     = msg.object_identification + msg.object_identification_length;
 
+    if(conn->id != NULL && strncasecmp( (char *)msg.object_field_extension, conn->id, 32) == 0){
+      msg.is_own = 1;
+    }else{
+      msg.is_own = 0;
+    }
+
     // -------------------------------------------------
     // get protocol info
     // -------------------------------------------------

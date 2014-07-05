@@ -63,17 +63,18 @@ void HTTP_processer::Process(int sock, unsigned char *buff, int index, int data_
       for(; v < line_size; v++){ if(line[v] != ' '){ break; } }
       for(; v < line_size; v++){ 
 	if(line[v] == ' '){ url[c] = '\0'; break; } 
-	if(arg_num == 0 && line[v] == '?'){url[c] = '\0'; arg_num = 1; sub_stage=0; c_n=0; c_v=0;}
-	if(arg_num >  0 && sub_stage==0 && line[v] == '='){ url_args[arg_num-1].arg_name[c_n] = '\0'; sub_stage=1;}
+	if(arg_num == 0 && line[v] == '?'){url[c] = '\0'; arg_num = 1; sub_stage=0; c_n=0; c_v=0; continue;}
+	if(arg_num >  0 && sub_stage==0 && line[v] == '='){ url_args[arg_num-1].arg_name[c_n] = '\0'; sub_stage=1; continue;}
 	if(arg_num >  0 && line[v] == '&'){
 	  url_args[arg_num-1].arg_name[c_n] = '\0'; 
-	  url_args[arg_num-1].arg_name[c_v] = '\0'; 
+	  url_args[arg_num-1].arg_value[c_v] = '\0'; 
 	  arg_num++;
 	  sub_stage=0;
 	  c_n=0; c_v=0;
 	  if(arg_num >= MAX_URL_ARG_NUM){
 	    is_error = 1; url[0] = '\0'; v = line_size; break;
 	  }
+	  continue;
 	}
 
 	if(arg_num == 0){
@@ -177,9 +178,15 @@ void HTTP_processer::Process(int sock, unsigned char *buff, int index, int data_
 	if(websock_key_size > 0){
 	  // check id and key
 	  int a;
-	  for(a == 0; a<arg_num; a++){
-
-	    // TODO: Check id and key
+	  for(a = 0; a<arg_num; a++){
+	    if(strcasecmp( url_args[a].arg_name, "id") == 0){
+	      //printf("id = %s\n", url_args[a].arg_value);
+	      conn->id = url_args[a].arg_value;
+	    }
+	    if(strcasecmp( url_args[a].arg_name, "key") == 0){
+	      //printf("key = %s\n", url_args[a].arg_value);
+	      conn->key = url_args[a].arg_value;
+	    }
 	    
 	  }
 

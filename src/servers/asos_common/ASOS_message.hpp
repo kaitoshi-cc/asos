@@ -11,6 +11,8 @@ public:
   ASOS_message();
   ~ASOS_message();
 
+  int is_own;
+
   // Stack header
   unsigned char protocol_type;  // 0x01: ASOSPv1
   

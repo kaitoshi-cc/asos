@@ -53,6 +53,9 @@ public:
   int time_close_grace;
 
   Connection *next;
+
+  const char *id;
+  const char *key;
   
   /*
     buff[]
